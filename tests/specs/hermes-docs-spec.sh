@@ -41,6 +41,10 @@ assert_contains "$HERMES_AUTO" "Agents never merge" "PR automation doc states th
 assert_contains "$HERMES_AUTO" "pr-sweep-monitor.mjs" "PR automation doc references the monitor script"
 assert_contains "$HERMES_AUTO" "docs/references/pr-review.md" "PR automation doc points at the canonical process, not a restatement"
 
+HERMES_MODES="$REPO_ROOT/docs/hermes/execution-modes.md"
+assert_contains "$HERMES_MODES" "Investigation continuity is the second exception" "Execution modes define the investigation-continuity session exception"
+assert_contains "$HERMES_MODES" "continuity: <reason>" "Investigation continuity is recorded in the worklog"
+
 # Monitor script: syntax-valid and deterministic-contract anchors present
 if nix develop --command node --check "$REPO_ROOT/scripts/pr-sweep-monitor.mjs" >/dev/null 2>&1; then
   pass "pr-sweep-monitor.mjs parses"

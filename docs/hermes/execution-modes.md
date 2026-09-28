@@ -41,6 +41,23 @@ on the host between calls, and advances the pipeline.
   `pi --session-id <same-id> "<follow-up>"` (the exact ID resumes the
   existing session). Never reuse a session across the
   implementer/reviewer boundary, and never reuse one across tasks.
+- **Investigation continuity is the second exception.** Sometimes a task's
+  root cause is not yet proven: a debug/findings stage, or a task whose fix
+  keeps failing for reasons nobody understands yet. There, the open
+  hypotheses and experiments *are* the working state, and a fresh session
+  has to rebuild them every round. Hermes may resume the *same implementer
+  session* across those iterations, within that one task, provided:
+  - the worklog records the session ID and why continuity was chosen
+    (`session: <id> — continuity: <reason>`), so a resume or a reviewer can
+    see it;
+  - every round still ends with Hermes running the task's gate on the host;
+    the session's own report is never the evidence;
+  - reviews of that work still run in fresh sessions (independence is
+    unchanged);
+  - the session ends once the root cause is proven. The rest of the task,
+    and every later task, starts fresh. If the context bloats first, write
+    the current hypotheses into the findings or worklog and start a fresh
+    session from them instead of pushing on in a degraded one.
 - Worklog-first discipline still applies: Hermes reads `worklog.md`, points
   Pi at the current task, runs the task's verification gate on the host, and
   commits the checkpoint itself (or has the Pi session commit, per repo
@@ -76,6 +93,8 @@ its own work.
 - Human approval gates (plan review → execution; PR merge) are unchanged.
 - Mode is recorded in the worklog header at execution start, so a resume
   knows what it is resuming into.
+- Any session continued under the investigation-continuity exception is
+  recorded in the worklog with its reason.
 
 ## Escalation / de-escalation
 
