@@ -64,8 +64,11 @@ assessment:
 - every role above has a named model (or an explicit "default" record);
 - the Implementer tier mapping is stated (which model is `high`, which is
   `low`);
-- critical roles (implementers, Planner, Reviewer) have fallback models
-  configured where any provider has quota/reliability limits;
+- critical roles (implementers, Planner, Reviewer) state a manual fallback
+  order (the next model to re-dispatch when the primary is unavailable).
+  Do not configure automatic fallback chains: pi-subagents 0.68 removed
+  `fallbackModels`, and an agent file or override that still declares the
+  key fails to load;
 - the assignment is auditable — a reviewer can tell from repo config alone
   which model reviewed the code.
 
