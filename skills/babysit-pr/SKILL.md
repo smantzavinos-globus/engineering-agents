@@ -15,7 +15,12 @@ code; its `notify=true` completion wakes the conversation so the agent can
 act. Do not claim automation persists after session exit. (For persistent,
 cross-session PR monitoring, see the owner-level sweep in
 [PR automation](../../docs/hermes/pr-automation.md) — different mechanism,
-different lifetime.)
+different lifetime. Both can run on the same PR; its *Babysit coexistence*
+section defines who owns what.)
+
+Role: babysitting is **author-side**. It fixes, replies, and pushes; the
+verdict and `reviewed@<sha>` stamp come only from an independent Reviewer run
+(the `pull-request` skill), never from this session.
 
 ## Establish the baseline
 
@@ -39,6 +44,16 @@ different lifetime.)
    security, architecture, compatibility, or scope choices; no merge or
    production deployment without approval. No history rewriting on shared PR
    branches.
+4. **Claim the PR.** Add the `pr:babysat` label and post one comment
+   `babysit: session=<id> heartbeat=<iso-time>`. If another session already
+   holds an *active* claim, stop and report it; do not start a second
+   babysitter. On every round you process, edit that same comment's
+   heartbeat instead of posting a new one. Record the claim comment ID with
+   the watcher handle.
+5. **Read the loop count.** Count prior `FIX` verdicts on the PR. The
+   two-fix-loop bound from the PR review process applies to the PR as a
+   whole, not to this session. If the PR is already at the bound, escalate
+   instead of starting.
 
 ## Arm a one-shot session watcher
 
@@ -56,6 +71,7 @@ Illustrative shell logic (replace placeholders with validated values):
 ```bash
 set -eo pipefail
 last=<last_processed_submitted_review_id>
+last_comment=<last_processed_comment_id>
 while :; do
   # Obtain GitHub authentication inside this process from the approved source.
   state=$(gh api repos/OWNER/REPO/pulls/N --jq '.state')
@@ -63,6 +79,11 @@ while :; do
   latest=$(gh api repos/OWNER/REPO/pulls/N/reviews --paginate \
     --jq "[.[] | select(.user.login == \"copilot-pull-request-reviewer[bot]\" and .submitted_at != null and .state != \"PENDING\" and .id > $last) | .id] | max // 0")
   if [[ "$latest" -gt "$last" ]]; then printf 'New review %s on PR N\n' "$latest"; exit 0; fi
+  # Also wake on independent-reviewer verdicts and human comments since the
+  # last processed comment ID (the sweep's Reviewer posts verdicts as comments).
+  newc=$(gh api repos/OWNER/REPO/issues/N/comments --paginate \
+    --jq "[.[] | select(.id > $last_comment and (.body | test(\"reviewed@|READY|FIX|BLOCKED\") or .user.type == \"User\")) | .id] | max // 0")
+  if [[ "$newc" -gt "$last_comment" ]]; then printf 'New comment %s on PR N\n' "$newc"; exit 0; fi
   sleep 120
 done
 ```
@@ -106,7 +127,9 @@ notification can re-enter.
    Request another reviewer pass once per new head after fixes. If a review
    arrives meanwhile, read it before requesting again.
 5. Re-arm the one-shot watcher using the latest **processed** review ID, not
-   latest head, while monitoring is requested. Report factual CI/check state
+   latest head, while monitoring is requested. Refresh the claim heartbeat.
+   If a new `FIX` verdict brings the PR to the two-fix-loop bound, stop and
+   escalate with the findings history instead of re-arming. Report factual CI/check state
    separately from local tests; no checks is **not** green CI. Note runtime
    limitations honestly.
 
@@ -143,7 +166,9 @@ access pattern lets the other multiply unchecked.
 
 Stop on PR closure, explicit human stop, consequential decision needing
 approval, irrecoverable auth/runtime failure, or session end. Kill the
-recorded watcher when stopping/replacing and verify state. Do not blindly
+recorded watcher when stopping/replacing and verify state. Release the claim:
+remove `pr:babysat` and edit the claim comment to `babysit: released`. If the
+session dies without releasing, the sweep's stale-claim rule recovers the PR. Do not blindly
 re-request reviews to chase a permanently retained historical finding;
 investigate current behavior, explain evidence, ask for a decision if
 needed. This is short-lived interactive babysitting, **not** unattended

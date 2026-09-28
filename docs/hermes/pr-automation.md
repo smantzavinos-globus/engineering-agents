@@ -23,6 +23,12 @@ statelessly — no agent-side memory is required.
 | `pr:ready-merge` | Reviewer posted READY + stamp; human decision pending | Reviewer |
 | `pr:escalated` | BLOCKED verdict or an ESCALATE question is pending | Reviewer |
 
+One **ownership label** sits alongside the state labels. It never replaces them:
+
+| Label | Meaning | Set by |
+|-------|---------|--------|
+| `pr:babysat` | An author-side babysit session owns the fix loop (see [Babysit coexistence](#babysit-coexistence)) | The babysit session, on start; removed by it on exit, or by the sweep when the claim goes stale |
+
 Transitions:
 
 ```mermaid
@@ -47,7 +53,7 @@ policy).
 
 ## Triggers
 
-Three trigger surfaces, in priority order:
+Four trigger surfaces, in priority order:
 
 1. **Cron sweep (backbone).** One scheduled job per owning agent covering
    all owned repos. Interval: every 1–2 minutes. With the monitor guard
@@ -63,11 +69,52 @@ Three trigger surfaces, in priority order:
    (labels updated mechanically; no LLM needed). This closes the
    silent-stale-approval hole: a stamped READY whose branch moved is not
    mergeable advice.
+4. **Babysit mention.** `@<agent> babysit` on a PR starts an author-side
+   babysit session for it (the `babysit-pr` skill), the same as asking in
+   chat. The sweep dispatches the session; it does not babysit inline.
 
 Webhook-triggered instant dispatch is the eventual upgrade and is
 deliberately deferred: the sweep architecture below is intentionally
 webhook-shaped so the monitor script can be reused as the webhook payload
 handler later.
+
+---
+
+## Babysit coexistence
+
+The sweep and babysitting are two different jobs, and both are needed:
+
+| | Sweep | Babysit |
+|---|---|---|
+| Started by | Labels, mentions, pushes (always on) | A human asks: chat or `@<agent> babysit` |
+| Lifetime | Persistent cron | Until READY, PR closed, human stop, escalation, or session end |
+| Role | Reviewer logistics: dispatch independent reviews, keep labels truthful | Author: fix findings, reply, push, request re-review |
+| Never does | Fix code | Issue a verdict or stamp on its own work |
+
+Rules that let them run on the same PR without fighting:
+
+1. **Claim.** A babysit session adds `pr:babysat` and posts one claim comment,
+   `babysit: session=<id> heartbeat=<iso-time>`. It edits that same comment's
+   heartbeat on every round it processes (it does not post a new one). On exit
+   it removes the label and edits the comment to `babysit: released`.
+2. **What the sweep still does on a babysat PR:** dispatches independent
+   Reviewer runs (push demotion to `pr:re-review` works as usual), corrects
+   label drift, and reports stuck states.
+3. **What the sweep stops doing on a babysat PR:** dispatching any fix or
+   author-side work, and notifying the human about FIX verdicts. The babysitter
+   owns those. READY, BLOCKED, and ESCALATE still notify the human.
+4. **Handoff.** Babysitter pushes a fix, push demotion sets `pr:re-review`, the
+   sweep dispatches a fresh Reviewer, and the Reviewer's verdict comment wakes
+   the babysitter. The babysitter therefore watches for new verdict/`reviewed@`
+   comments and human comments, not just bot reviews.
+5. **Shared bound.** The two-fix-loop limit from the
+   [PR review process](../references/pr-review.md) is counted from the PR's
+   FIX verdict history, not per session. A babysitter that reaches it
+   escalates. Being asked to babysit does not raise the bound.
+6. **Stale claim.** If the heartbeat is older than `PR_BABYSIT_STALE_MIN`
+   (default 60 minutes), the monitor reports `claim=stale`. The sweep then
+   removes `pr:babysat`, treats the PR as a stuck state, and notifies the human
+   once. The PR then falls back to normal sweep handling.
 
 ---
 
@@ -83,7 +130,7 @@ summary of actionable PR state per repo:
 
 ```
 repo: <owner>/<repo>
-  pr:<number> label=<label> head=<sha> stamp=<sha-or-none> comments-new=<n>
+  pr:<number> label=<label> head=<sha> stamp=<sha-or-none> comments-new=<n> mentioned=<yes|no> claim=<none|active|stale> babysit-request=<yes|no>
 ```
 
 Rules for the script:
@@ -98,6 +145,11 @@ Rules for the script:
   already working (the dispatch record below covers that) or
   `pr:ready-merge` PRs whose stamp matches HEAD and have no new comments —
   those would re-fire the LLM every tick until the human merges.
+- **Babysat PRs**: a `pr:babysat` PR with an active claim is listed only for
+  reviewer-side reasons (actionable label, a moved head); new comments alone
+  do not make it actionable, because the babysitter handles them. A stale
+  claim is always actionable. The `claim=` field changes once when the claim
+  goes stale and then stays stable.
 - **Detect its own actions as calm, not change**: after the agent reviews a
   PR, the resulting label + stamp change produces one changed hash (the
   triggering tick) and then stability. If the output would flap, the script
@@ -142,7 +194,7 @@ checkout, rule pass, verification commands — does not fit. Therefore:
   sweep with no progress, or repeated dispatch failure at the same SHA
   (3+ times), is reported to the human as an automation failure — not
   silently retried forever.
-- **Notify the human only on**: READY digests (per the loop rules in the
+- **Notify the human only on**: stale babysit claims, READY digests (per the loop rules in the
   PR review process), BLOCKED/ESCALATE questions, label drift on
   `pr:ready-merge`, and stuck states. FIX loops stay silent (bounded at
   two, per the process).
@@ -186,10 +238,16 @@ Prompt: |
        in the repo (local checkout under the agent's repos/ directory;
        fetch first).
     2. Check the dispatch record; skip PRs already dispatched at this head SHA.
-    3. Set label pr:in-review, then dispatch ONE background reviewer task
-       running the pull-request skill's Reviewer role
-       (repo, PR number, manifest path as inputs).
-    4. Append the dispatch record.
+    3. If claim=stale: remove pr:babysat, report the stuck babysit, continue.
+       If babysit-request=yes and claim=none: dispatch ONE background babysit
+       session (babysit-pr skill, repo + PR as inputs), append the record, and
+       continue.
+    4. If the label calls for review: set pr:in-review, then dispatch ONE
+       background reviewer task running the pull-request skill's Reviewer
+       role (repo, PR number, manifest path as inputs). This applies to
+       babysat PRs too.
+    5. Append the dispatch record. Never dispatch author-side fix work for a
+       PR with claim=active.
   Do not review inline. Do not post comments yourself. Do not merge.
   Report only failures and stuck states.
 ```

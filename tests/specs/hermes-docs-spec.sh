@@ -53,6 +53,16 @@ else
 fi
 assert_contains "$REPO_ROOT/scripts/pr-sweep-monitor.mjs" "PR_SWEEP_REPOS" "Monitor script documents the repo list env var"
 assert_contains "$REPO_ROOT/scripts/pr-sweep-monitor.mjs" "no actionable PRs" "Monitor script has a stable empty state"
+if nix develop --command node "$REPO_ROOT/tests/scripts/pr-sweep-claim-state.test.mjs" >/dev/null 2>&1; then
+  pass "Monitor claimState classifies babysit claims (none/active/stale)"
+else
+  fail "Monitor claimState unit checks failed"
+fi
+assert_contains "$HERMES_AUTO" "Babysit coexistence" "PR automation doc defines babysit coexistence"
+assert_contains "$HERMES_AUTO" "pr:babysat" "PR automation doc defines the babysit ownership label"
+assert_contains "$HERMES_AUTO" "Shared bound" "Babysit and sweep share the two-fix-loop bound"
+assert_contains "$REPO_ROOT/skills/babysit-pr/SKILL.md" "pr:babysat" "babysit-pr sets the ownership claim"
+assert_contains "$REPO_ROOT/skills/babysit-pr/SKILL.md" "heartbeat=" "babysit-pr maintains the claim heartbeat"
 
 printf '\n'
 printf 'Results: %d passed, %d failed\n' "$PASS" "$FAIL"
