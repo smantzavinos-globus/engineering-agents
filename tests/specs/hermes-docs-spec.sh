@@ -34,29 +34,31 @@ assert_contains "$HERMES_AUTO" "Label state machine" "PR automation doc defines 
 assert_contains "$HERMES_AUTO" "pr:ready-review" "PR automation doc defines ready-review label"
 assert_contains "$HERMES_AUTO" "pr:ready-merge" "PR automation doc defines ready-merge label"
 assert_contains "$HERMES_AUTO" "pr:escalated" "PR automation doc defines escalated label"
-assert_contains "$HERMES_AUTO" "monitor_script" "PR automation doc specifies the monitor guard"
+assert_contains "$HERMES_AUTO" "no_agent" "PR automation doc specifies the no-LLM sweep tick"
 assert_contains "$HERMES_AUTO" "3 minutes" "PR automation doc records the cron interrupt constraint"
 assert_contains "$HERMES_AUTO" "Never half-post" "PR automation doc defines the failure policy"
 assert_contains "$HERMES_AUTO" "Agents never merge" "PR automation doc states the merge boundary"
-assert_contains "$HERMES_AUTO" "pr-sweep-monitor.mjs" "PR automation doc references the monitor script"
 assert_contains "$HERMES_AUTO" "docs/references/pr-review.md" "PR automation doc points at the canonical process, not a restatement"
 
 HERMES_MODES="$REPO_ROOT/docs/hermes/execution-modes.md"
 assert_contains "$HERMES_MODES" "Investigation continuity is the second exception" "Execution modes define the investigation-continuity session exception"
 assert_contains "$HERMES_MODES" "continuity: <reason>" "Investigation continuity is recorded in the worklog"
 
-# Monitor script: syntax-valid and deterministic-contract anchors present
-if nix develop --command node --check "$REPO_ROOT/scripts/pr-sweep-monitor.mjs" >/dev/null 2>&1; then
-  pass "pr-sweep-monitor.mjs parses"
+# Dispatcher: parses, and its pure decision functions pass their unit tests
+if nix develop --command python3 -m py_compile "$REPO_ROOT/scripts/pr-sweep-dispatch.py" >/dev/null 2>&1; then
+  pass "pr-sweep-dispatch.py compiles"
 else
-  fail "pr-sweep-monitor.mjs does not parse"
+  fail "pr-sweep-dispatch.py does not compile"
 fi
-assert_contains "$REPO_ROOT/scripts/pr-sweep-monitor.mjs" "PR_SWEEP_REPOS" "Monitor script documents the repo list env var"
-assert_contains "$REPO_ROOT/scripts/pr-sweep-monitor.mjs" "no actionable PRs" "Monitor script has a stable empty state"
-if nix develop --command node "$REPO_ROOT/tests/scripts/pr-sweep-claim-state.test.mjs" >/dev/null 2>&1; then
-  pass "Monitor claimState classifies babysit claims (none/active/stale)"
+if nix develop --command python3 -m unittest -q "$REPO_ROOT/tests/scripts/test_pr_sweep_dispatch.py" >/dev/null 2>&1; then
+  pass "Dispatcher decisions (claim state, verdict marker, opt-in, mentions) pass unit tests"
 else
-  fail "Monitor claimState unit checks failed"
+  fail "Dispatcher decision unit tests failed"
+fi
+if [[ -e "$REPO_ROOT/scripts/pr-sweep-monitor.mjs" ]]; then
+  fail "Retired monitor script still present (scripts/pr-sweep-monitor.mjs)"
+else
+  pass "Retired monitor script removed"
 fi
 assert_contains "$HERMES_AUTO" "Babysit coexistence" "PR automation doc defines babysit coexistence"
 assert_contains "$HERMES_AUTO" "pr:babysat" "PR automation doc defines the babysit ownership label"
