@@ -133,7 +133,7 @@ Use `.pi/settings.json` for settings such as:
 - `defaultProvider`, `defaultModel`, `defaultThinkingLevel`, and `enabledModels`.
 - `thinkingBudgets`, display settings, compaction, retry, and session settings when they must differ for this repository.
 - Project-local `extensions`, `skills`, `prompts`, and `themes` paths.
-- `subagents.agentOverrides` for repository-specific subagent model, thinking, tool, fallback-chain, or role behavior.
+- `subagents.agentOverrides` for repository-specific subagent model, thinking, tool, or role behavior. No fallback-chain behavior exists: pi-subagents 0.68 removed `fallbackModels`.
 - `subagents.defaultModel` to give subagents without an explicit model their own default model (separate from the session model).
 
 Example: keep the project's default model and route a reviewer to a verified stronger model:

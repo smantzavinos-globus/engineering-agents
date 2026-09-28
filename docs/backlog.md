@@ -64,6 +64,11 @@ _No items yet._
 
 ## Inbox
 
+### TASK-0005 — Onboard engineering-agents itself with a root pr-review-hooks.md manifest
+- Status: Inbox
+- Summary: The repo defines the PR review process (`docs/references/pr-review.md`) and its Required Repo Hooks table, but has no root `pr-review-hooks.md` manifest of its own — a reviewer of this repo's PRs proceeds on task-supplied facts instead of the fixed-shape manifest (found during the independent review of PR #18, 2026-09-28). Fix: run `assess-repo` against this repo and draft the manifest (review-inputs / review-rules / verification-commands / evidence-captures / pr-tracking / merge-gate), routing it from root `AGENTS.md`.
+- Source: Reviewer MINOR finding on PR #18 (review comment 5880478914); parent session onboarding run 2026-09-28.
+
 ### TASK-0003 — Fix resource-snapshot.mjs Pi module path resolution through the startup wrapper
 - Status: Inbox
 - Summary: `tests/scripts/resource-snapshot.mjs` (`buildPiModulePath()`) locates the real `pi-coding-agent` package by resolving `which pi` and walking two directories up to find `lib/node_modules/{@earendil-works,@mariozechner}/pi-coding-agent/dist/index.js`. On hosts where the repo's own `pi` startup wrapper is on `PATH` (see `pi-startup-wrapper-spec.sh` / `pi-launch-wrapper.sh`), `which pi` resolves to the wrapper's Nix store package (which only contains `bin/pi`, no `lib/node_modules`), not the real `pi-coding-agent` package — so the entrypoint lookup fails with "Unable to locate Pi module entrypoint" and `./tests/run-tests.sh all` / the Pi proof-set step cannot run.
