@@ -174,7 +174,10 @@ not ceilings.
    manifest rule, runs the manifest verification commands, and posts:
    - the filled review-rules table with evidence links,
    - findings as a severity-ordered list,
-   - a verdict: `READY`, `FIX` (findings below Blocker), or `BLOCKED`.
+   - a verdict: `READY`, `FIX` (findings below Blocker), or `BLOCKED`,
+     closed by the machine-readable marker
+     `<!-- pr-review verdict=<VERDICT> head=<full sha> -->` so the verdict
+     history (and with it the fix-loop bound below) is countable.
 4. **Re-review is incremental.** The reviewer stamps the reviewed SHA in a PR
    comment (`reviewed@<sha>`). Subsequent passes review only the delta since
    the stamp plus verification that prior findings are resolved. Unchanged,

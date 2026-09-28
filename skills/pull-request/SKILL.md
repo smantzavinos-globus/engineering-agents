@@ -60,6 +60,10 @@ role procedure; never restate the contract from memory.
    with anchors and suggested fixes, verification outcomes, verdict
    (`READY` / `FIX` / `BLOCKED` per the contract), and on READY the stamp
    `reviewed@<sha>` of the exact HEAD you reviewed. No stamp on FIX/BLOCKED.
+   End the comment with the machine-readable marker
+   `<!-- pr-review verdict=<VERDICT> head=<full sha> -->` (see
+   `docs/hermes/pr-automation.md` → Verdict marker) so automation can read
+   the state without an LLM.
 6. **Notify** per the contract's loop rules: the human hears about READY,
    BLOCKED, and ESCALATE — never intermediate FIX states. Bound: two fix
    loops, then escalate with findings history.

@@ -115,6 +115,12 @@ Rules that let them run on the same PR without fighting:
    (default 60 minutes), the monitor reports `claim=stale`. The sweep then
    removes `pr:babysat`, treats the PR as a stuck state, and notifies the human
    once. The PR then falls back to normal sweep handling.
+7. **Who owns the round loop.** A babysitter started from chat runs its own
+   one-shot watcher, and the sweep must not start a twin. A babysit started by
+   the sweep (`@<agent> babysit`) has no watcher: the sweep re-dispatches one
+   round per new FIX verdict at the current head. Sweep-started sessions use
+   a reserved session-id prefix in the claim (`session=babysit-pr…`), and
+   the sweep only continues claims carrying that prefix.
 
 ---
 
@@ -167,9 +173,28 @@ Hermes cron agent runs are hard-interrupted at 3 minutes. A real review —
 checkout, rule pass, verification commands — does not fit. Therefore:
 
 - The sweep tick's only job: parse the injected change summary, then
-  **dispatch one background review task per actionable PR** (delegation or
-  spawned process), each running the pull-request skill's Reviewer role
-  with the PR number, repo, and the repo's manifest path as inputs.
+  **dispatch one background review task per actionable PR**, each running
+  the pull-request skill's Reviewer role with the PR number, repo, and the
+  repo's manifest path as inputs.
+- **The vehicle is a detached Hermes session**, not in-process delegation.
+  A `delegate_task` child lives inside the tick's process and dies with it.
+  Launch a separate process instead:
+  `hermes chat -Q --oneshot --query-file <prompt> --source pr-automation
+  --continue "<title>" --create-if-missing -m <model> -s <skills>`, started
+  with a new session (`setsid` / `start_new_session`) and stdin closed. The
+  session is re-parented to init and outlives the tick. Use a strong model
+  for the Reviewer (it produces the verdict of record) and a cheaper one for
+  author-side babysit rounds.
+- **Name the session** `PR #<n> <review|babysit> @<sha7> — <PR title>` at
+  launch (`--continue <title> --create-if-missing`). The Reviewer renames it
+  to end with its verdict when done. Otherwise one-shot sessions get
+  auto-titles such as `<command_output>` or the prompt's first words, and
+  are indistinguishable in the session list.
+- **Result file.** Each session writes
+  `pr-automation/results/<tag>.json` (`pr`, `head`, `verdict`/`status`,
+  `summary`, `url`, `notify`). A later tick delivers it as the READY /
+  BLOCKED / ESCALATE digest. A dispatch whose process is gone without a
+  result file counts as a failed dispatch.
 - **One dispatch record per tick**, written before spawning
   (e.g. `~/.../pr-automation/dispatches.jsonl`: timestamp, repo, PR, head
   SHA). The record is what makes re-dispatches idempotent — a PR already
@@ -177,6 +202,24 @@ checkout, rule pass, verification commands — does not fit. Therefore:
   changes again.
 - **Reviews may take arbitrarily long** — they run outside the cron tick.
   The next sweep sees their label/stamp effects, not their runtime.
+
+---
+
+## Verdict marker
+
+Reviewer comments end with a machine-readable marker so the sweep can parse
+state without an LLM:
+
+```
+**Verdict: READY|FIX|BLOCKED**
+<!-- pr-review verdict=READY|FIX|BLOCKED head=<full sha> -->
+reviewed@<full sha>          (READY only)
+```
+
+The sweep uses the marker for push demotion (a verdict whose `head` differs
+from the PR head is stale), for the shared two-fix-loop bound (count of
+`verdict=FIX` markers), and for babysit hand-off (a new FIX marker at the
+current head triggers the next babysit round).
 
 ---
 
@@ -221,6 +264,27 @@ checkout, rule pass, verification commands — does not fit. Therefore:
 
 ## Sweep cron template
 
+Two equivalent shapes. **Prefer A.** The tick only dispatches, so there is
+no judgment for an LLM to add.
+
+### A. No-agent dispatcher (recommended)
+
+```
+Schedule:  every 2m
+no_agent:  true
+Script:    scripts/pr-sweep-dispatch.py  (copy into the agent's scripts dir,
+           together with scripts/pr-sweep-prompts/)
+Env:       PR_SWEEP_REPO=owner/repo  PR_AGENT_HANDLE=<handle>
+           PR_REVIEW_MODEL / PR_BABYSIT_MODEL / HERMES_BIN / GH_BIN as needed
+```
+
+stdout is the delivery: digests, stuck states, and failures. Empty stdout
+means a silent tick at zero tokens. The script covers everything the template
+below lists: labels, push demotion, mentions, babysit claims, the dispatch
+record, stuck and failure bounds, and detached session launch.
+
+### B. LLM tick with monitor guard
+
 Copy per owning agent; fill the three uppercase fields. The prompt inlines
 only logistics — the process contract is read from the repo at run time.
 
@@ -248,8 +312,18 @@ Prompt: |
        babysat PRs too.
     5. Append the dispatch record. Never dispatch author-side fix work for a
        PR with claim=active.
+  Dispatch = a detached `hermes chat` session (see Dispatch), never an
+  in-process delegation.
   Do not review inline. Do not post comments yourself. Do not merge.
   Report only failures and stuck states.
 ```
+
+### Opt-in vs drift
+
+The reference monitor treats an unlabeled PR as drift and makes it
+actionable. In a repo with pre-existing open PRs, that queues every one of
+them for review on the first tick. The dispatcher defaults to **opt-in**: an
+unlabeled PR is ignored until someone labels it `pr:ready-review` or mentions
+the handle. Set `PR_SWEEP_UNLABELED=review` to restore drift behaviour.
 
 Setup is step 2 of the [self-setup checklist](README.md#agent-self-setup-checklist).
