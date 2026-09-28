@@ -5,7 +5,7 @@
 # Requirement: FR-001
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TMP="$(mktemp -d)"; trap 'rm -rf "$TMP" /tmp/pr-sweep-dry' EXIT
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 cat > "$TMP/gh" <<'EOF'
 #!/usr/bin/env bash
 case "$*" in
@@ -23,20 +23,19 @@ EOF
 chmod +x "$TMP/gh"
 PY="$(command -v python3 || true)"
 if [[ -z "$PY" ]]; then echo "  FAIL: python3 not on PATH (run inside nix develop)" >&2; exit 1; fi
-run() { env -u GH_TOKEN PR_SWEEP_DRY=1 PR_SWEEP_REPO=o/r GH_BIN="$TMP/gh" HERMES_HOME="$TMP" "$@" "$PY" "$ROOT/scripts/pr-sweep-dispatch.py"; }
+run() { env -u GH_TOKEN PR_SWEEP_DRY=1 PR_SWEEP_REPOS=o/r PR_SWEEP_STATE="$TMP/state" GH_BIN="$TMP/gh" HERMES_HOME="$TMP" "$@" "$PY" "$ROOT/scripts/pr-sweep-dispatch.py"; }
 PASS=0 FAIL=0
 check() { if grep -Fq "$2" <<<"$1"; then PASS=$((PASS+1)); echo "  PASS: $3"; else FAIL=$((FAIL+1)); echo "  FAIL: $3 (missing: $2)" >&2; fi; }
 refute() { if grep -Fq "$2" <<<"$1"; then FAIL=$((FAIL+1)); echo "  FAIL: $3 (unexpected: $2)" >&2; else PASS=$((PASS+1)); echo "  PASS: $3"; fi; }
 
 OUT="$(run)"
-refute "$OUT" "spawn review for PR #1" "opt-in: unlabeled PR is ignored"
-check  "$OUT" "would spawn review for PR #2" "pr:ready-review dispatches a detached review"
-check  "$OUT" "would set PR #2 label pr:in-review" "dispatch marks the PR in-review"
-check  "$OUT" "would set PR #3 label pr:re-review" "push after READY demotes to re-review"
+refute "$OUT" "spawn review for o/r#1" "opt-in: unlabeled PR is ignored"
+check  "$OUT" "would spawn review for o/r#2" "pr:ready-review dispatches a detached review"
+check  "$OUT" "would set o/r#2 label pr:in-review" "dispatch marks the PR in-review"
+check  "$OUT" "would set o/r#3 label pr:re-review" "push after READY demotes to re-review"
 check  "$OUT" "new commits after READY" "stale READY is reported to the human"
-rm -rf /tmp/pr-sweep-dry
 OUT="$(PR_SWEEP_UNLABELED=review run)"
-check  "$OUT" "would spawn review for PR #1" "drift mode: unlabeled PR is reviewed"
+check  "$OUT" "would spawn review for o/r#1" "drift mode: unlabeled PR is reviewed"
 
 printf '\nResults: %d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

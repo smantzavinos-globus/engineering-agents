@@ -56,11 +56,13 @@ policy).
 Four trigger surfaces, in priority order:
 
 1. **Cron sweep (backbone).** One scheduled job per owning agent covering
-   all owned repos. Interval: every 1–2 minutes. With the monitor guard
-   (below), idle ticks cost zero LLM tokens and stay far inside GitHub API
-   rate limits.
+   all owned repos. Interval: every 1–2 minutes. The tick is a no-agent
+   script (see [The sweep tick](#the-sweep-tick-no-llm)), so every tick
+   costs zero LLM tokens and stays far inside GitHub API rate limits.
 2. **Comment mentions.** A human comment containing the agent's handle
-   (`@<agent> review` / `@<agent> fix`) triggers immediately. The handle is
+   triggers on the next tick: `@<agent> review` (or any other mention)
+   dispatches a Reviewer; `@<agent> fix` / `@<agent> babysit` starts an
+   author-side round (trigger 4). The handle is
    per-repo configuration, recorded in the repo's `pr-tracking` manifest
    row. Mentions always win over sweep state — a mention forces a run even
    if labels look stale.
@@ -74,9 +76,9 @@ Four trigger surfaces, in priority order:
    chat. The sweep dispatches the session; it does not babysit inline.
 
 Webhook-triggered instant dispatch is the eventual upgrade and is
-deliberately deferred: the sweep architecture below is intentionally
-webhook-shaped so the monitor script can be reused as the webhook payload
-handler later.
+deliberately deferred. The dispatcher's per-PR decision is a pure function of
+the PR's labels and comments, so a webhook handler can call the same logic
+for one PR instead of sweeping them all.
 
 ---
 
@@ -112,7 +114,7 @@ Rules that let them run on the same PR without fighting:
    FIX verdict history, not per session. A babysitter that reaches it
    escalates. Being asked to babysit does not raise the bound.
 6. **Stale claim.** If the heartbeat is older than `PR_BABYSIT_STALE_MIN`
-   (default 60 minutes), the monitor reports `claim=stale`. The sweep then
+   (default 60 minutes), the claim is stale. The sweep then
    removes `pr:babysat`, treats the PR as a stuck state, and notifies the human
    once. The PR then falls back to normal sweep handling.
 7. **Who owns the round loop.** A babysitter started from chat runs its own
@@ -124,56 +126,44 @@ Rules that let them run on the same PR without fighting:
 
 ---
 
-## Monitor guard: no LLM on idle ticks
+## The sweep tick (no LLM)
 
-The sweep cron uses a Hermes `monitor_script`. Each tick the script runs
-first; its output is hashed as exact bytes. **Unchanged output = silent
-`no_change` tick: no LLM, no delivery, zero tokens. Changed output = the
-diff is injected into a normal agent run.**
+The tick is a Hermes cron job in `no_agent` mode: a deterministic script,
+[`scripts/pr-sweep-dispatch.py`](../../scripts/pr-sweep-dispatch.py). It reads
+GitHub and applies the rules below. Its stdout is the delivery; empty stdout
+means a silent tick. The tick exercises no judgment: it decides who works on
+a PR, never what the verdict is. So an LLM adds cost and a failure mode (a
+model that "just checks" and starts reviewing inside a 3-minute tick) and no
+value.
 
-The script queries GitHub (read-only) and prints a sorted, deterministic
-summary of actionable PR state per repo:
+Per PR, each tick:
 
-```
-repo: <owner>/<repo>
-  pr:<number> label=<label> head=<sha> stamp=<sha-or-none> comments-new=<n> mentioned=<yes|no> claim=<none|active|stale> babysit-request=<yes|no>
-```
-
-Rules for the script:
-
-- **Byte-stable output**: fixed line format, sorted by repo then PR number,
-  no timestamps, no counts of things that jitter (e.g. do not include
-  "seconds since last run").
-- **Actionable means actionable**: include a PR when (a) its label is
-  `pr:ready-review` or `pr:re-review`, or (b) its head SHA differs from the
-  last stamped SHA and its label is not `pr:in-review`, or (c) a new comment
-  mentions the agent. Do NOT include `pr:in-review` PRs the agent itself is
-  already working (the dispatch record below covers that) or
-  `pr:ready-merge` PRs whose stamp matches HEAD and have no new comments —
-  those would re-fire the LLM every tick until the human merges.
-- **Babysat PRs**: a `pr:babysat` PR with an active claim is listed only for
-  reviewer-side reasons (actionable label, a moved head); new comments alone
-  do not make it actionable, because the babysitter handles them. A stale
-  claim is always actionable. The `claim=` field changes once when the claim
-  goes stale and then stays stable.
-- **Detect its own actions as calm, not change**: after the agent reviews a
-  PR, the resulting label + stamp change produces one changed hash (the
-  triggering tick) and then stability. If the output would flap, the script
-  is wrong — fix the script, do not widen the agent's job.
-
-Reference implementation lives at `scripts/pr-sweep-monitor.mjs` (Node,
-GitHub REST via `gh` or token, repos passed as an env var). Keep it
-deterministic; it is infrastructure, not judgment.
-
----
+- **Reads state** from labels and comments only. There is no agent-side
+  memory beyond the dispatch record: the one state label, the latest verdict
+  marker, the babysit claim heartbeat, and unprocessed handle mentions.
+- **Selects work.** A Reviewer is wanted when the label is `pr:ready-review`
+  or `pr:re-review` with no finished review at this head, when there is an
+  unprocessed review mention, or when the PR is `pr:in-review` but no
+  reviewer is running (drift). An author round is wanted on a babysit/fix
+  mention with no claim, or on a new FIX verdict at the current head under a
+  sweep-owned claim. Drafts are skipped. `pr:ready-merge` PRs whose verdict
+  head equals the PR head are left alone until the human merges.
+- **Demotes pushes mechanically.** `pr:ready-merge` or `pr:escalated` whose
+  latest verdict head is not the PR head moves to `pr:re-review`. A stale
+  READY is reported.
+- **Handles claims.** A stale claim loses `pr:babysat` and is reported once.
+- **Detects its own actions as calm.** After a reviewer posts, the next tick
+  sees a finished review at this head and does nothing. If a PR re-dispatches
+  every tick, the rules are wrong: fix the script, do not widen a session's
+  job.
 
 ## Dispatch: the tick never reviews inline
 
 Hermes cron agent runs are hard-interrupted at 3 minutes. A real review —
 checkout, rule pass, verification commands — does not fit. Therefore:
 
-- The sweep tick's only job: parse the injected change summary, then
-  **dispatch one background review task per actionable PR**, each running
+- The sweep tick's only job: **dispatch one background review task per
+  actionable PR**, each running
   the pull-request skill's Reviewer role with the PR number, repo, and the
   repo's manifest path as inputs.
 - **The vehicle is a detached Hermes session**, not in-process delegation.
@@ -197,9 +187,9 @@ checkout, rule pass, verification commands — does not fit. Therefore:
   result file counts as a failed dispatch.
 - **One dispatch record per tick**, written before spawning
   (e.g. `~/.../pr-automation/dispatches.jsonl`: timestamp, repo, PR, head
-  SHA). The record is what makes re-dispatches idempotent — a PR already
-  dispatched at a given head SHA is skipped even if the monitor output
-  changes again.
+  SHA, session tag, pid). The record makes re-dispatches idempotent: a PR
+  with a finished or running review at a given head SHA is not dispatched
+  again, and each mention comment is processed once.
 - **Reviews may take arbitrarily long** — they run outside the cron tick.
   The next sweep sees their label/stamp effects, not their runtime.
 
@@ -264,66 +254,35 @@ current head triggers the next babysit round).
 
 ## Sweep cron template
 
-Two equivalent shapes. **Prefer A.** The tick only dispatches, so there is
-no judgment for an LLM to add.
-
-### A. No-agent dispatcher (recommended)
+Copy per owning agent. Everything the tick does is in the script; the process
+contract is read from the repo by the sessions it launches.
 
 ```
-Schedule:  every 2m
-no_agent:  true
-Script:    scripts/pr-sweep-dispatch.py  (copy into the agent's scripts dir,
-           together with scripts/pr-sweep-prompts/)
-Env:       PR_SWEEP_REPO=owner/repo  PR_AGENT_HANDLE=<handle>
-           PR_REVIEW_MODEL / PR_BABYSIT_MODEL / HERMES_BIN / GH_BIN as needed
+hermes cron create "every 2m" --no-agent --script pr-sweep-dispatch.py --name pr-sweep
+
+Install:  copy scripts/pr-sweep-dispatch.py and scripts/pr-sweep-prompts/
+          into $HERMES_HOME/scripts/
+Env:      PR_SWEEP_REPOS="owner/repo-a owner/repo-b"   PR_AGENT_HANDLE=<handle>
+          PR_REVIEW_MODEL (strong)  PR_BABYSIT_MODEL (cheaper)
+          PR_REVIEW_SKILLS / PR_BABYSIT_SKILLS (add repo overlay skills)
+          PR_SWEEP_CHECKOUT_ROOT (local checkouts, default ~/repos)
+          HERMES_BIN / GH_BIN / GH_TOKEN_FILE as the host needs
+Deliver:  the channel where the human wants READY / BLOCKED / ESCALATE digests
 ```
 
-stdout is the delivery: digests, stuck states, and failures. Empty stdout
-means a silent tick at zero tokens. The script covers everything the template
-below lists: labels, push demotion, mentions, babysit claims, the dispatch
-record, stuck and failure bounds, and detached session launch.
-
-### B. LLM tick with monitor guard
-
-Copy per owning agent; fill the three uppercase fields. The prompt inlines
-only logistics — the process contract is read from the repo at run time.
-
-```
-Schedule: every 1m (or 2m)
-Monitor script: scripts/pr-sweep-monitor.mjs   (packaged via skill-resources
-                into the agent's tree, or referenced from a local checkout)
-Script env:    PR_SWEEP_REPOS="owner/repo-a owner/repo-b"
-               GH_TOKEN via the agent's existing auth
-Prompt: |
-  You are the PR-logistics sweep for repos: $PR_SWEEP_REPOS.
-  The MONITOR CHANGE DETECTED block lists actionable PRs.
-  For each PR listed:
-    1. Read docs/hermes/pr-automation.md and docs/references/pr-review.md
-       in the repo (local checkout under the agent's repos/ directory;
-       fetch first).
-    2. Check the dispatch record; skip PRs already dispatched at this head SHA.
-    3. If claim=stale: remove pr:babysat, report the stuck babysit, continue.
-       If babysit-request=yes and claim=none: dispatch ONE background babysit
-       session (babysit-pr skill, repo + PR as inputs), append the record, and
-       continue.
-    4. If the label calls for review: set pr:in-review, then dispatch ONE
-       background reviewer task running the pull-request skill's Reviewer
-       role (repo, PR number, manifest path as inputs). This applies to
-       babysat PRs too.
-    5. Append the dispatch record. Never dispatch author-side fix work for a
-       PR with claim=active.
-  Dispatch = a detached `hermes chat` session (see Dispatch), never an
-  in-process delegation.
-  Do not review inline. Do not post comments yourself. Do not merge.
-  Report only failures and stuck states.
-```
+`PR_SWEEP_DRY=1` prints the actions a tick would take without mutating GitHub
+or the dispatch record. Run it once before enabling the cron. The session
+prompts in `scripts/pr-sweep-prompts/` carry the logistics (worktree, exactly
+one comment, verdict marker, labels via REST, result file, session title). The
+review itself is the `pull-request` skill executing
+`docs/references/pr-review.md`, read from the repo at run time and never
+restated in the prompt.
 
 ### Opt-in vs drift
 
-The reference monitor treats an unlabeled PR as drift and makes it
-actionable. In a repo with pre-existing open PRs, that queues every one of
-them for review on the first tick. The dispatcher defaults to **opt-in**: an
-unlabeled PR is ignored until someone labels it `pr:ready-review` or mentions
-the handle. Set `PR_SWEEP_UNLABELED=review` to restore drift behaviour.
+By default an unlabeled PR is **ignored** until someone labels it
+`pr:ready-review` or mentions the handle. Otherwise, in a repo with open PRs,
+the first tick would queue every one of them for review. Set
+`PR_SWEEP_UNLABELED=review` to treat an unlabeled PR as drift awaiting review.
 
 Setup is step 2 of the [self-setup checklist](README.md#agent-self-setup-checklist).
