@@ -154,33 +154,11 @@ Example: keep the project's default model and route a reviewer to a verified str
 
 Use only model IDs available in the current environment. Keep every project configuration secret-free.
 
-### Subagent model fallback chains
+### Subagent override precedence
 
-`pi-subagents` supports an ordered fallback chain per agent. Set it in `subagents.agentOverrides.<agent>.fallbackModels` (array) or directly in an agent definition's frontmatter (`fallbackModels: provider/id, provider/id`).
+Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values (pi-subagents >=0.73; earlier releases skipped frontmatter-declared fields). Project overrides beat user overrides. In engineering-agents-managed deployments, the `agentOverrides` argument of `makePiConfig`/`engineering-agents.pi-for-user.args` patches the shipped agent frontmatter at build time instead.
 
-```json
-{
-  "subagents": {
-    "agentOverrides": {
-      "worker": {
-        "model": "zai-coding-plan/glm-5.2",
-        "fallbackModels": [
-          "fireworks/accounts/fireworks/models/deepseek-v4-flash",
-          "fireworks/accounts/fireworks/models/qwen3p8-max"
-        ]
-      }
-    }
-  }
-}
-```
-
-Fallback semantics (verified against the pinned pi-subagents source):
-
-- The chain is tried **in order** after the primary model fails.
-- Fallback triggers only on **provider/model failure classes**: rate limit (429), quota/billing, auth/API-key errors, timeouts, provider overloaded/unavailable, model not found/disabled, and network errors. **Ordinary task failures never trigger fallback** — a failing test or bad code output is retried by the same model, not routed to the next one.
-- Model IDs resolve fuzzily (case/separator/date-stamp tolerant); a `provider/id` reference never silently switches providers.
-
-Precedence rule — important: an override field is **skipped when the agent definition's frontmatter already declares that field**. An agent file with `model:` in frontmatter ignores `agentOverrides.<agent>.model` (same for `fallbackModels`/`thinking`). Settings-level overrides apply only to fields the agent file leaves undeclared. To re-point a frontmatter-declared model per environment, either edit the agent definition or, in engineering-agents-managed deployments, use the `agentOverrides` argument of `makePiConfig`/`engineering-agents.pi-for-user.args`, which patches the shipped agent frontmatter at build time.
+`fallbackModels` was removed in pi-subagents 0.68: an agent file or override that still sets it fails to load. Configure one model per agent.
 
 `subagents.defaultModel` applies only to agents **without** an explicit model (frontmatter `model:` and any per-agent override win).
 

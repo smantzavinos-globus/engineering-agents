@@ -309,21 +309,19 @@
           cfgd=${self.lib.${system}.makePiConfig {
             agentOverrides = {
               worker.model = "zai-coding-plan/glm-5.3";
-              worker.fallbackModels = [ "fireworks/accounts/fireworks/models/deepseek-v4-flash" ];
-              code-reviewer.fallbackModels = [ "zai-coding-plan/glm-5.2" ];
               oracle.thinking = "low";
             };
             subagentDefaultModel = "zai-coding-plan/glm-5";
             subagentOverrides = { researcher.model = "zai-coding-plan/glm-5-turbo"; };
           }}
-          # Patched frontmatter: model replaced, fallbacks replaced/inserted,
-          # thinking patched.
+          # Patched frontmatter: model replaced, thinking patched.
           grep -Fqx 'model: zai-coding-plan/glm-5.3' "$cfgd/agent/agents/worker.md" \
             || { echo "FAIL: worker model patch missing"; exit 1; }
-          grep -Fqx 'fallbackModels: fireworks/accounts/fireworks/models/deepseek-v4-flash' "$cfgd/agent/agents/worker.md" \
-            || { echo "FAIL: worker fallbackModels insert missing"; exit 1; }
-          grep -Fqx 'fallbackModels: zai-coding-plan/glm-5.2' "$cfgd/agent/agents/code-reviewer.md" \
-            || { echo "FAIL: code-reviewer fallbackModels replace missing"; exit 1; }
+          # pi-subagents >=0.68 rejects fallbackModels in agent frontmatter
+          # (hard load error): no shipped or patched agent may carry it.
+          if grep -l '^fallbackModels:' "$cfgd"/agent/agents/*.md; then
+            echo "FAIL: agent frontmatter still declares removed fallbackModels"; exit 1
+          fi
           grep -Fqx 'model: zai-coding-plan/glm-5.2' "$cfgd/agent/agents/code-reviewer.md" \
             || { echo "FAIL: unspecified fields must pass through (code-reviewer model)"; exit 1; }
           grep -Fqx 'thinking: low' "$cfgd/agent/agents/oracle.md" \

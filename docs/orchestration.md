@@ -707,7 +707,9 @@ Create `.pi/settings.json` in the repo root and add a `subagents.agentOverrides`
 }
 ```
 
-Supported override fields: `model`, `thinking`, `fallbackModels`, `skills`, `tools`, `systemPrompt`, `systemPromptMode`, `inheritProjectContext`, `inheritSkills`, `defaultContext`, `disabled`.
+Supported override fields: `model`, `thinking`, `skills`, `tools`, `systemPrompt`, `systemPromptMode`, `inheritProjectContext`, `inheritSkills`, `defaultContext`, `disabled`.
+
+Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values (pi-subagents >=0.73; earlier releases skipped frontmatter-declared fields). Project overrides beat user overrides. pi-subagents 0.68 removed `fallbackModels`; a definition or override that still sets it fails to load.
 
 ### Common Per-Repo Configurations
 

@@ -2,7 +2,6 @@
 name: planner
 description: Creates detailed implementation plans from brief + approach + findings. Frontier reasoning model for strong decomposition and task ordering.
 model: openai-codex/gpt-5.5
-fallbackModels: zai-coding-plan/glm-5.2
 thinking: high
 skill: create-plan
 ---

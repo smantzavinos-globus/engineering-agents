@@ -72,7 +72,6 @@ Check for presence AND quality of:
 **Agent configuration:**
 - [ ] `.pi/settings.json` exists with `subagents.agentOverrides` (if repo needs non-default models)
 - [ ] Agent model overrides match the repo's tech stack (e.g., UI-strong model for frontend repos)
-- [ ] Fallback chains (`fallbackModels`) configured for critical agents (worker, code-reviewer) when any provider in use has quota/reliability limits
 - [ ] No full agent `.md` copies in `.pi/agents/` (use `.pi/settings.json` → `subagents.agentOverrides` for automatic prompt updates)
 
 ### 3. Assess Quality (not just existence)
@@ -350,7 +349,7 @@ When setting up or updating agent models for a repo, use `.pi/settings.json` →
 {
   "subagents": {
     "agentOverrides": {
-      "worker": { "model": "<model-id>", "thinking": "high", "fallbackModels": ["<backup-model-id>"] },
+      "worker": { "model": "<model-id>", "thinking": "high" },
       "code-reviewer": { "model": "<model-id>", "thinking": "high" }
     }
   }
@@ -359,9 +358,7 @@ When setting up or updating agent models for a repo, use `.pi/settings.json` →
 
 Only override agents where the model should differ from the global default.
 
-Fallback chains (`fallbackModels`, ordered) are tried only on provider/model failures — rate limit, quota/billing, auth/API-key, timeout, provider overloaded, model unavailable, network errors. Ordinary task failures never trigger fallback. Configure them when the repo's providers have quota or reliability limits.
-
-Precedence caveat: an override field is skipped when the agent definition's frontmatter already declares that field (`model:`, `fallbackModels:`, `thinking:`). If a needed override does not take effect, check the agent file's frontmatter; re-pointing a frontmatter-declared model requires editing the agent definition or the deployment's build-time agent overrides.
+Precedence: Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values (pi-subagents >=0.73; earlier releases skipped frontmatter-declared fields). Project overrides beat user overrides. Do not set `fallbackModels`: pi-subagents 0.68 removed it, and an agent or override that still declares it fails to load.
 
 Ask the user about:
 - Preferred providers (cost constraints, API access)

@@ -47,16 +47,14 @@ let
       source = {
         type = "git";
         packageName = "pi-subagents";
-        # Post-0.50.0 main — required for `workflowScript` code-mode orchestration.
-        # The v0.50.0 tag CANNOT be used: its workflow engine hard-requires
-        # node:v8 promiseHooks.createHook, which Bun-built Pi does not implement
-        # ("NotImplementedError: node:v8 createHook is not yet implemented in Bun"),
-        # so every workflowScript run fails. This pin includes 19a4e60 (Bun
-        # promise-hook fallback, switches script parsing to acorn) and b6a69ec
-        # (acorn manifest resolution). Revisit when 0.51.0 ships.
-        # Note: the pi manifest entrypoint moved to ./index.ts in 0.50.0.
-        spec = "github:nicobailon/pi-subagents#3847deeaa6e814c328ff4964fc28d7c2e6f9fc9b";
-        installSpec = "github:nicobailon/pi-subagents#3847deeaa6e814c328ff4964fc28d7c2e6f9fc9b";
+        # Released v0.73.1 tag (npm gitHead). Needs Pi >=0.86.1 (pi-ai peer)
+        # and vendors undici 8.10.0. 0.68.0 removed `fallbackModels`: agent
+        # frontmatter or overrides using it are a hard load error, so the
+        # shipped agents and agentOverrides no longer carry it. Keeps the Bun
+        # promise-hook fallback + acorn workflowScript parsing (post-0.50.0).
+        # Entry point: ./index.ts.
+        spec = "github:nicobailon/pi-subagents#8a403efba6975988cc0488ec8bb941db5ef1a19e";
+        installSpec = "github:nicobailon/pi-subagents#8a403efba6975988cc0488ec8bb941db5ef1a19e";
       };
     };
 
@@ -288,10 +286,10 @@ let
   # two pi-ext packageIds). Hashes are unpacked-codeload SRI values.
   gitSources = {
     "pi-subagents" = {
-      rev = "3847deeaa6e814c328ff4964fc28d7c2e6f9fc9b";
+      rev = "8a403efba6975988cc0488ec8bb941db5ef1a19e";
       tarball = pkgs.fetchzip {
-        url = "https://github.com/nicobailon/pi-subagents/archive/3847deeaa6e814c328ff4964fc28d7c2e6f9fc9b.tar.gz";
-        hash = "sha256-jHphHR90W3WimQj6WMufG8CS37/tr63g/HCbrLxxwqQ=";
+        url = "https://github.com/nicobailon/pi-subagents/archive/8a403efba6975988cc0488ec8bb941db5ef1a19e.tar.gz";
+        hash = "sha256-EqWfWHlyXkhWNgov4gQnpnX/Gnz4QjjBBAPcx8Xrvjo=";
         stripRoot = true;
       };
     };
@@ -433,7 +431,7 @@ let
     # `nix build nixpkgs#prefetch-npm-deps` after lockfile edits).
     npmDeps = pkgs.fetchNpmDeps {
       src = ./managed-packages;
-      hash = "sha256-/nu8UGMVSX0wHeCmdH014PthR8HU9N7J82Wbw4P2Icg=";
+      hash = "sha256-svAvFZO473Dl111LkAXZrcLUnhe53oXhud+4W2skqF0=";
     };
 
     nativeBuildInputs = [ nodejs pkgs.npmHooks.npmConfigHook ];
@@ -698,9 +696,9 @@ let
       # pi-subagents routing. disableBuiltins keeps the extension's bundled
       # agents out; the shipped repo agents (agents/*.md) are custom agents.
       # subagentDefaultModel applies only to agents WITHOUT an explicit model;
-      # subagentOverrides (subagents.agentOverrides) fields are SKIPPED for
-      # any field an agent's frontmatter already declares — use makePiConfig's
-      # agentOverrides to re-point frontmatter-declared models per consumer.
+      # subagentOverrides (subagents.agentOverrides) replace frontmatter
+      # fields on pi-subagents >=0.73 (older releases skipped them); prefer
+      # makePiConfig's build-time agentOverrides for per-consumer routing.
       subagents = { disableBuiltins = true; }
         // lib.optionalAttrs (subagentDefaultModel != null) {
           defaultModel = subagentDefaultModel;
@@ -938,36 +936,30 @@ let
 
   # Patch a shipped agent definition's frontmatter at build time (the pi
   # analogue of opencode's agentModelOverrides). Settings-level
-  # subagents.agentOverrides cannot re-point fields an agent's frontmatter
-  # already declares — per-consumer routing of frontmatter-declared models
-  # (model:, fallbackModels:, thinking:) goes through this patch instead.
+  # This keeps per-consumer routing (model:, thinking:) in the shipped agent
+  # file itself, so it does not depend on settings-level override precedence
+  # (pi-subagents >=0.73 lets subagents.agentOverrides replace frontmatter;
+  # older releases skipped frontmatter-declared fields).
   # Unspecified fields pass through unchanged; the derivation self-verifies.
+  # pi-subagents >=0.68 removed `fallbackModels` (a hard load error in
+  # frontmatter or overrides); reject it here instead of shipping a broken agent.
   patchAgentMd = name: override:
-    let
-      fallbacks = lib.concatStringsSep ", " (override.fallbackModels or [ ]);
-    in
+    assert lib.assertMsg (!(override ? fallbackModels))
+      "agentOverrides.${name}.fallbackModels: pi-subagents >=0.68 removed fallbackModels; configure one model instead";
     pkgs.runCommand "pi-agent-${name}-patched.md" {
       model = override.model or "";
-      inherit fallbacks;
       thinking = override.thinking or "";
     } ''
       set -euo pipefail
-      awk -v m="$model" -v fb="$fallbacks" -v th="$thinking" '
+      awk -v m="$model" -v th="$thinking" '
         NR==1 && $0 == "---" { infm=1; print; next }
         infm && $0 == "---" {
           if (m != "" && !sawmodel) print "model: " m
-          if (fb != "" && !donefb) print "fallbackModels: " fb
           infm=0; print; next
         }
         infm && /^model:[[:space:]]/ {
           sawmodel=1
           if (m != "") print "model: " m; else print
-          if (fb != "") { print "fallbackModels: " fb; donefb=1 }
-          next
-        }
-        infm && /^fallbackModels:[[:space:]]/ {
-          if (fb != "" && !donefb) { print "fallbackModels: " fb; donefb=1 }
-          else if (fb == "") print
           next
         }
         infm && /^thinking:[[:space:]]/ {
@@ -979,9 +971,6 @@ let
 
       ${lib.optionalString (override ? model) ''
         grep -Fqx "model: ${override.model}" $out || { echo "agentOverrides: model patch failed for ${name}" >&2; exit 1; }
-      ''}
-      ${lib.optionalString (override ? fallbackModels) ''
-        grep -Fqx "fallbackModels: ${fallbacks}" $out || { echo "agentOverrides: fallbackModels patch failed for ${name}" >&2; exit 1; }
       ''}
       ${lib.optionalString (override ? thinking) ''
         grep -Fqx "thinking: ${override.thinking}" $out || { echo "agentOverrides: thinking patch failed for ${name}" >&2; exit 1; }
@@ -1051,9 +1040,8 @@ in
     powerlineShortcuts ? defaultPowerlineShortcuts,
     extraSkills ? {},
     # Per-consumer agent routing: attrset of <agentName> -> { model ?,
-    # fallbackModels ? [ ... ], thinking ? } patched into the shipped agent
-    # frontmatter at build time. Wins over the shipped frontmatter (unlike
-    # subagentOverrides, which frontmatter-declared fields ignore).
+    # thinking ? } patched into the shipped agent
+    # frontmatter at build time (subagentOverrides are settings-level).
     agentOverrides ? {},
     subagentDefaultModel ? null,
     subagentOverrides ? {},
@@ -1065,6 +1053,8 @@ in
   in
   assert lib.assertMsg (unknownAgentOverrides == [])
     "makePiConfig agentOverrides references unknown agents: ${toString unknownAgentOverrides} (known: ${toString piAgents})";
+  assert lib.assertMsg (lib.all (o: !(lib.isAttrs o && o ? fallbackModels)) (lib.attrValues subagentOverrides))
+    "makePiConfig subagentOverrides: pi-subagents >=0.68 removed fallbackModels (settings load error); configure one model instead";
   let
     settings = makePiSettings {
       inherit

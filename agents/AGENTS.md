@@ -4,7 +4,7 @@ Read this file before adding, renaming, or materially editing files in `agents/`
 
 ## Agent Frontmatter Conventions
 - Keep one Markdown file per agent at `agents/<name>.md`.
-- Start each agent file with YAML frontmatter that matches the runtime contract already used in this repo: `name`, `description`, `model`, and `thinking`; add `skill`, `fallbackModels`, or `defaultProgress` only when the agent actually needs them.
+- Start each agent file with YAML frontmatter that matches the runtime contract already used in this repo: `name`, `description`, `model`, and `thinking`; add `skill` or `defaultProgress` only when the agent actually needs them.
 - Keep `name` aligned with the filename stem so routing, tests, and overrides stay obvious.
 - Make `description` answer when to use the agent, not just restate the name.
 - After frontmatter, keep the body focused on role, domain boundaries, required verification behavior, and any injected-skill contract.

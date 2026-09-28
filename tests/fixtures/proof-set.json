@@ -16,7 +16,7 @@
     {
       "packageId": "pi-subagents",
       "sourceManifestName": "pi-subagents",
-      "sourceSpec": "github:nicobailon/pi-subagents#3847deeaa6e814c328ff4964fc28d7c2e6f9fc9b",
+      "sourceSpec": "github:nicobailon/pi-subagents#8a403efba6975988cc0488ec8bb941db5ef1a19e",
       "resourceExpectations": {
         "extensions": [
           "./index.ts"
