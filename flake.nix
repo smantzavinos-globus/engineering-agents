@@ -207,6 +207,7 @@
             nodejs
             jq
             git
+            python3
           ];
         };
       });
