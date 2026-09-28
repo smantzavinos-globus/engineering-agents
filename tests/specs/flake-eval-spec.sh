@@ -139,7 +139,7 @@ if [[ -n "$PI_OUT" && -d "$PI_OUT" ]]; then
   # appended to pi's PATH by the policy extension.
   PI_LENS_TOOLS_BIN="$PI_FILES/.pi/agent/pi-lens-tools/bin"
   PI_LENS_TOOLS_OK=1
-  for tool in typescript-language-server svelteserver typos-lsp yaml-language-server bash-language-server pyright-langserver nixd \
+  for tool in typescript-language-server svelteserver typos-lsp marksman yaml-language-server bash-language-server pyright-langserver nixd \
               biome ruff oxlint shellcheck shfmt yamllint actionlint zizmor gitleaks govulncheck ast-grep opengrep knip jscpd madge; do
     [[ -x "$PI_LENS_TOOLS_BIN/$tool" ]] || { PI_LENS_TOOLS_OK=0; printf '    missing pi-lens tool: %s\n' "$tool" >&2; }
   done

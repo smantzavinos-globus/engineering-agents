@@ -164,6 +164,9 @@ pkgs.buildEnv {
     u.pyright
     u.taplo
     u.typos-lsp
+    # pi-lens' only Markdown server (the bundled vscode-markdown-language-server
+    # is unused by pi-lens). Adds a .NET runtime (~95 MiB).
+    u.marksman
     # Linters (mostly config-gated)
     u.biome
     u.ruff
