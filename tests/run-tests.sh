@@ -58,6 +58,7 @@ run_specs() {
               "$SCRIPT_DIR/specs/preset-spec.sh" \
               "$SCRIPT_DIR/specs/compiler-contract-spec.sh" \
               "$SCRIPT_DIR/specs/pi-preset-refresh-contract-spec.sh" \
+              "$SCRIPT_DIR/specs/pi-btw-refresh-contract-spec.sh" \
               "$SCRIPT_DIR/specs/managed-package-install-state-spec.sh" \
               "$SCRIPT_DIR/specs/managed-package-status-spec.sh" \
               "$SCRIPT_DIR/specs/pi-startup-wrapper-spec.sh" \

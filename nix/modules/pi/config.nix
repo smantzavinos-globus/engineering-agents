@@ -135,13 +135,18 @@ let
       };
     };
 
+    # Git source (not npm) at the exact commit npm 1.1.7 was published from
+    # (tarball gitHead; src/ and package.json identical, no dependencies).
+    # Its npm peer range `pi-coding-agent ^0.74.0` (<0.75) is stale; kept in
+    # the npm graph it pins the shared lock's Pi core peers at 0.74.x and
+    # blocks packages that need >=0.85.1 (pi-btw 0.6). Unmaintained since
+    # 2026-05; runs on the Pi 0.86.1 runtime.
     pi-subdir-context = {
       source = {
-        type = "npm";
+        type = "git";
         packageName = "pi-subdir-context";
-        spec = "pi-subdir-context@1.1.7";
-        installSpec = "pi-subdir-context@1.1.7";
-        version = "1.1.7";
+        spec = "github:default-anton/pi-subdir-context#5d58a8b0533689eb91105b89f31d182199188d4e";
+        installSpec = "github:default-anton/pi-subdir-context#5d58a8b0533689eb91105b89f31d182199188d4e";
       };
     };
 
@@ -218,9 +223,9 @@ let
       source = {
         type = "npm";
         packageName = "pi-btw";
-        spec = "pi-btw@0.4.1";
-        installSpec = "pi-btw@0.4.1";
-        version = "0.4.1";
+        spec = "pi-btw@0.6.1";
+        installSpec = "pi-btw@0.6.1";
+        version = "0.6.1";
       };
     };
 
@@ -330,6 +335,14 @@ let
         stripRoot = true;
       };
     };
+    "pi-subdir-context" = {
+      rev = "5d58a8b0533689eb91105b89f31d182199188d4e";
+      tarball = pkgs.fetchzip {
+        url = "https://github.com/default-anton/pi-subdir-context/archive/5d58a8b0533689eb91105b89f31d182199188d4e.tar.gz";
+        hash = "sha256-oFhbYwu+HX+sTLiG4sGpHeeEPt0dLINp3fcWsDa/ssU=";
+        stripRoot = true;
+      };
+    };
     "pi-tasks" = {
       rev = "6a4445afe26430e634541723af4ed55aa8a86214";
       tarball = pkgs.fetchzip {
@@ -420,10 +433,16 @@ let
     # `nix build nixpkgs#prefetch-npm-deps` after lockfile edits).
     npmDeps = pkgs.fetchNpmDeps {
       src = ./managed-packages;
-      hash = "sha256-VSlCC7+8fW+o9gR7ncteTze0Rtaauf7obmjTFpM1AGk=";
+      hash = "sha256-/nu8UGMVSX0wHeCmdH014PthR8HU9N7J82Wbw4P2Icg=";
     };
 
     nativeBuildInputs = [ nodejs pkgs.npmHooks.npmConfigHook ];
+
+    # npm re-resolves the @earendil-works/* nodes nested under the vendored
+    # pi-coding-agent peer (the same npm behavior that drops their lock
+    # integrity; see refresh-lock.sh) and reads them through its HTTP cache,
+    # which needs a writable cache even when every tarball is present.
+    makeCacheWritable = true;
 
     # The committed lock is generated with --install-strategy=nested (see
     # refresh-lock.sh): pi's extension loader resolves imports against the
