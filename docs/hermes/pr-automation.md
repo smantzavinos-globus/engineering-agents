@@ -88,7 +88,7 @@ The sweep and babysitting are two different jobs, and both are needed:
 
 | | Sweep | Babysit |
 |---|---|---|
-| Started by | Labels, mentions, pushes (always on) | A human asks: chat or `@<agent> babysit` |
+| Started by | Labels, mentions, pushes (always on) | A human asks: chat or `@<agent> babysit`, or the author's sweep-owned claim at PR open under the delivery pipeline ([rule 7](#rules-that-let-them-run-on-the-same-pr-without-fighting)) |
 | Lifetime | Persistent cron | Until READY, PR closed, human stop, escalation, or session end |
 | Role | Reviewer logistics: dispatch independent reviews, keep labels truthful | Author: fix findings, reply, push, request re-review |
 | Never does | Fix code | Issue a verdict or stamp on its own work |

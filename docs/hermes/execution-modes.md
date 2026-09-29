@@ -91,6 +91,9 @@ its own work.
 - Reviewer independence: reviewer context ≠ implementer context, in every
   mode.
 - Human approval gates (plan review → execution; PR merge) are unchanged.
+  Exception: delivery-pipeline items with `Autonomy: auto` skip the plan
+  gate (see `docs/references/delivery-pipeline.md` §2); PR merge is never
+  skipped.
 - Mode is recorded in the worklog header at execution start, so a resume
   knows what it is resuming into.
 - Any session continued under the investigation-continuity exception is
