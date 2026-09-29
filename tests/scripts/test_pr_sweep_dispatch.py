@@ -73,12 +73,32 @@ class Mentions(unittest.TestCase):
               comment(2, "h", "@bot fix the tests"),
               comment(3, "bot", "@bot review"),       # own comment: ignored
               comment(4, "h", "@bot babysit")]
-        review, babysit = d.mentions(cs, "bot", seen_ids={4})
+        review, babysit = d.mentions(cs, ("bot",), seen_ids={4})
         self.assertEqual(review["id"], 1)
         self.assertEqual(babysit["id"], 2)
 
     def test_no_handle_means_no_mentions(self):
-        self.assertEqual(d.mentions([comment(1, "h", "@bot review")], "", set()), (None, None))
+        self.assertEqual(d.mentions([comment(1, "h", "@bot review")], (), set()), (None, None))
+
+    def test_parse_handles_splits_and_normalizes(self):
+        self.assertEqual(d.parse_handles("Smantzavinos, @Agent"), ("smantzavinos", "agent"))
+        self.assertEqual(d.parse_handles("  bot  "), ("bot",))
+        self.assertEqual(d.parse_handles(""), ())
+        self.assertEqual(d.parse_handles(None), ())
+
+    def test_alias_handle_triggers_review_and_fix(self):
+        # The live sweep configures PR_AGENT_HANDLE="smantzavinos agent": a mention of the
+        # alias alone must fire, or `@agent review` is a silent no-op.
+        cs = [comment(1, "h", "@agent review please"),
+              comment(2, "h", "@agent fix the tests")]
+        review, babysit = d.mentions(cs, ("smantzavinos", "agent"), set())
+        self.assertEqual(review["id"], 1)
+        self.assertEqual(babysit["id"], 2)
+
+    def test_self_mention_ignored_for_every_configured_handle(self):
+        cs = [comment(1, "Agent", "@agent review"),   # author IS a configured handle
+              comment(2, "smantzavinos", "@smantzavinos review")]
+        self.assertEqual(d.mentions(cs, ("smantzavinos", "agent"), set()), (None, None))
 
 
 if __name__ == "__main__":
