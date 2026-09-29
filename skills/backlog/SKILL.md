@@ -29,6 +29,7 @@ commands from that doc; never hand-roll tracker calls when a helper exists.
 | **Move** | Only the pipeline's transitions, as their actor. Never move into `Up next` or `Icebox`. `Canceled` only on an owner `reject`. `Blocked`, `Done` and `Canceled` need a comment. |
 | **Set fields** | Fill empty fields during triage with the exact values. Never change a field that already has a value unless the owner asked, except `Track` fast-path → standard when the work needs a design choice (say so in one comment). Never set `Autonomy`. |
 | **Stage** | Set `Stage` whenever a session starts a stage: `Design`, `Plan`, `Execute`, `Research`, `PR`. |
+| **Never write a reply line** | No comment you post may start with `@<handle> approve` / `revise:` / `discuss` / `reject` / `unblock:`. Every gate, triage and claim comment carries its marker. On a shared owner/agent account, that is what keeps your comments from counting as the owner's replies. |
 | **Claim** | At session start, edit the item's claim comment (create it once) to `work: session=<id> heartbeat=<UTC ISO>`; refresh at each stage boundary; at session end, edit it to `work: released`. The claim is an audit trail: the dispatcher guarantees one session per item, so a claim left by a dead session is simply overwritten. |
 | **Link a PR** | PR body carries the closing reference (`Closes #N` on GitHub). Move the item to `In review` when the PR opens. |
 

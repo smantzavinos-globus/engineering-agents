@@ -26,6 +26,10 @@ Environment:
                           "node scripts/backlog.mjs move {number} {status}"
   PIPELINE_OWNERS         logins whose comments count as replies (required)
   PR_AGENT_HANDLE         agent handles replies mention (required; same vocabulary as the PR sweep)
+  PIPELINE_SHARED_ACCOUNT=1  the owner and the agent post from the same login. Replies are then
+                          recognised by format alone: an owner-login comment counts only if it
+                          carries no pipeline marker (`<!-- ... -->`, `work:`/`babysit:` claim lines).
+                          Sessions must never start a comment with `@<handle> <verb>`.
   PIPELINE_BASE           base branch for new item branches (default main)
   PIPELINE_WORKTREE_ROOT  where item worktrees live (default <checkout>-worktrees)
   PIPELINE_WIP            In progress limit (default 2)
@@ -61,6 +65,8 @@ LIST_CMD = ENV.get("PIPELINE_LIST_CMD", "")
 MOVE_CMD = ENV.get("PIPELINE_MOVE_CMD", "")
 OWNERS = tuple(o.lower() for o in _handles(ENV.get("PIPELINE_OWNERS", "")))
 HANDLES = _handles(ENV.get("PR_AGENT_HANDLE", ""))
+SHARED = bool(ENV.get("PIPELINE_SHARED_ACCOUNT"))
+AGENT_MARK = re.compile(r"<!--|^\s*(work|babysit):\s", re.M)
 BASE = ENV.get("PIPELINE_BASE", "main")
 WT_ROOT = pathlib.Path(ENV.get("PIPELINE_WORKTREE_ROOT", str(CHECKOUT) + "-worktrees"))
 WIP = int(ENV.get("PIPELINE_WIP", "2"))
@@ -93,10 +99,16 @@ out = []  # lines delivered to the human
 
 # ---------------------------------------------------------------- pure decisions
 
-def parse_reply(comment, handles=HANDLES, owners=OWNERS):
-    """(verb, body) if the comment is an owner reply per the dispatch contract, else None."""
+def parse_reply(comment, handles=HANDLES, owners=OWNERS, shared=None):
+    """(verb, body) if the comment is an owner reply per the dispatch contract, else None.
+
+    With a shared account (owner login == agent login), a comment from that login is a
+    reply only if it carries no agent marker; agent sessions never write reply lines."""
+    shared = SHARED if shared is None else shared
     login = ((comment.get("user") or {}).get("login") or "").lower()
-    if login not in owners or login in handles:
+    if login not in owners:
+        return None
+    if login in handles and not (shared and not AGENT_MARK.search(comment.get("body") or "")):
         return None
     lines = [l.strip() for l in (comment.get("body") or "").splitlines() if l.strip()]
     if not lines:

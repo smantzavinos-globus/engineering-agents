@@ -403,6 +403,13 @@ directory), up to **3** failures per item, stage and reason; then it stops
 and notifies the owner once. A pickup that cannot even start is bounded the
 same way.
 
+**Shared account.** When the owner and the agent post from the same login,
+the repo says so in its Owner hook. Replies are then recognised by format
+alone: a comment from that login counts only if it carries no pipeline
+marker (hidden `<!-- -->` marker or claim line), and sessions never start a
+comment with `@<handle> <verb>`. A separate agent account is safer; this
+mode trades that for one login.
+
 **Single worker.** The dispatcher never runs two sessions for one item; its
 dispatch records, not the claim comment, decide that. The claim comment is an
 audit trail for humans: a retried session simply overwrites it. Markers count
