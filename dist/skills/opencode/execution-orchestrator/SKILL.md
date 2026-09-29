@@ -40,7 +40,7 @@ This process is a strict sequential pipeline: plan → review → worklog → T1
 5. Create worklog (sub-agent with create-worklog skill)
 6. Commit initialized worklog before T1
 7. Execute tasks (one sub-agent per task with execute-task skill; each task commits atomically and records accepted backlog follow-ups and approved requirement edits)
-   - Optional: per-task review after each (sub-agent with review-code skill, scoped to task diff)
+   - Per-task review when the task calls for it (sub-agent with review-code skill, scoped to task diff); see Step 5
 8. Final code review (sub-agent with review-code skill, full branch diff; suggested backlog items separated from required fixes; requirement alignment checked when relevant)
 9. Fix issues if found (sub-agent for fixes, re-review; commit each coherent fix)
 10. Complete
@@ -150,8 +150,14 @@ Low tier:
 task(category="unspecified-low", load_skills=["execute-task"], prompt="Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs.")
 ```
 
-**Per-task review (optional but recommended):**
-After each task implementation, optionally review just that task's committed changes:
+**Per-task review (controlled by the plan):**
+Whether a task gets a per-task review is decided by the plan, not by this session. Read the task's `Task review` field; if absent, use the plan's `Task review default`; if that is absent too, use `each`. Run the review below only when the result is `yes` (or `each`). When it is `no` (or `final-only`), record `review skipped per plan` in the worklog and advance; the final code review still covers the task.
+
+Review a skipped task anyway when its implementation needed a fix pass or retry, or its commit touches files outside the task's `Touched files`. Record why.
+
+To change the choice mid-run, edit the plan's `Task review default` or the task's `Task review` field and note it in the worklog; read the fields again before each task.
+
+When the review is due, review just that task's committed changes:
 
 ```
 task(category="deep", load_skills=["review-code"], prompt="Review the most recent commit's changes against the plan at [plan directory path]/plan.md. Focus only on the current task's diff. Separate required fixes from non-blocking suggested backlog items. Check requirement alignment if the plan cites or updates requirements.")

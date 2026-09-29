@@ -60,6 +60,11 @@ Every task must include a TDD checklist with:
 - The implementation to make it pass
 - Verification commands
 
+The plan sets **`Task review default`** (`each` or `final-only`) and any task may override it with **`Task review: yes | no`**. This controls only the optional per-task code review; the final code review always runs. Choose per task, not by habit:
+- Review (`yes`): contract or characterization tasks, schema/migration/auth/permission changes, changes that cross packages, high-tier tasks, and tasks whose output later tasks build on directly.
+- Skip (`no`): low-tier mechanical tasks, documentation-only tasks, and `check`-class tasks that a command fully proves.
+- Default `final-only` for small or independent-task plans; default `each` for large or tightly dependent ones.
+
 Every task also declares a **verification class** — `contract`, `characterization`, `check`, or `none` (see `docs/testing-strategy.md`). There is no default break-it step: break-it demonstrations are reserved for high-risk invariants (money, auth, data loss) and are reviewer-initiated.
 
 ### Verification must reference canonical sources

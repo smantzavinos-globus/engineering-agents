@@ -41,6 +41,7 @@ You are a senior engineering reviewer. Your job is to find problems in the plan 
 - Each checkbox names specific files, behaviors, and commands
 - No vague "implement the feature" steps
 - Verification class declared for every task
+- `Task review default` declared, and any per-task `Task review` override matches the criteria in `create-plan` (a `no` on a schema/auth/migration task is a Major finding)
 - Verification commands reference canonical repo docs
 
 ### Coverage completeness
@@ -100,7 +101,7 @@ Missing any = Critical.
 
 ### Severity calibration overrides
 - **Critical:** Missing contract/exit code/warning taxonomy/determinism; missing external dependency pinning/toolchain integration; missing deviation protocol for tooling + contracts
-- **Major:** Missing baseline gate audit for package-wide/repo-wide gates; missing unrelated failure policy; missing verification scope labeling; missing verification class for tasks with observable behavior; missing coverage matrix for plans changing queries/mutations/domain logic/routes/shared exports; coverage matrix present but missing negative/edge cases; missing file/module skeleton + acceptance checklist (tooling plans); plan test tasks satisfiable by tautological/source-reading tests without reviewer flagging
+- **Major:** Missing baseline gate audit for package-wide/repo-wide gates; missing unrelated failure policy; missing verification scope labeling; missing verification class for tasks with observable behavior; per-task review skipped on a schema, migration, auth, or permission task; missing coverage matrix for plans changing queries/mutations/domain logic/routes/shared exports; coverage matrix present but missing negative/edge cases; missing file/module skeleton + acceptance checklist (tooling plans); plan test tasks satisfiable by tautological/source-reading tests without reviewer flagging
 
 ## Decision Handling
 

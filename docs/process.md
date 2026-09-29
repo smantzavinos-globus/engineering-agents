@@ -211,9 +211,9 @@ brief → research → approach → approach review
 
 **Backlog behavior:** Follow-up work discovered during execution is not added to the current plan's task list unless the human explicitly changes scope. Non-blocking follow-ups are captured in the repo backlog after confirmation and referenced from `worklog.md` by stable ID.
 
-##### Per-Task Review (Optional Pattern)
+##### Per-Task Review (Set by the Plan)
 
-An optional but recommended pattern: after each task implementation, run a lightweight code review of just that task's changes before advancing to the next task.
+The plan decides, per task, whether to run a lightweight code review of just that task's changes before advancing: a plan-level `Task review default` (`each` or `final-only`) and an optional per-task `Task review: yes | no` override. The final code review always runs.
 
 **Why this helps:**
 - Catches errors early before subsequent tasks build on top of them
@@ -236,7 +236,7 @@ For each task:
 - Working on unfamiliar codebase areas
 - Tasks have tight dependencies (T2 builds directly on T1's output)
 
-**When to skip:** Acceptable to skip when:
+**When to set `no` (or default `final-only`):**
 - Using a high-quality model for both implementation and final review
 - Tasks are independent and don't build on each other
 - The change is small (3 or fewer tasks)
