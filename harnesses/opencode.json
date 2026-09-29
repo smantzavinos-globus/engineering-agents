@@ -16,6 +16,14 @@
       "kind": "category",
       "category": "unspecified-high"
     },
+    "executeTaskHigh": {
+      "kind": "category",
+      "category": "unspecified-high"
+    },
+    "executeTaskLow": {
+      "kind": "category",
+      "category": "unspecified-low"
+    },
     "fix": {
       "kind": "category",
       "category": "unspecified-high"

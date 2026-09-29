@@ -132,7 +132,7 @@ Use `.pi/settings.json` for settings such as:
 - `defaultProvider`, `defaultModel`, `defaultThinkingLevel`, and `enabledModels`.
 - `thinkingBudgets`, display settings, compaction, retry, and session settings when they must differ for this repository.
 - Project-local `extensions`, `skills`, `prompts`, and `themes` paths.
-- `subagents.agentOverrides` for repository-specific subagent model, thinking, tool, or role behavior. No fallback-chain behavior exists: pi-subagents 0.68 removed `fallbackModels`.
+- `subagents.agentOverrides` for repository-specific subagent model, thinking, tool, or role behavior. `fallbackModels` is unsupported.
 - `subagents.defaultModel` to give subagents without an explicit model their own default model (separate from the session model).
 
 Example: keep the project's default model and route a reviewer to a verified stronger model:
@@ -156,9 +156,9 @@ Use only model IDs available in the current environment. Keep every project conf
 
 ### Subagent override precedence
 
-Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values (pi-subagents >=0.73; earlier releases skipped frontmatter-declared fields). Project overrides beat user overrides. In engineering-agents-managed deployments, the `agentOverrides` argument of `makePiConfig`/`engineering-agents.pi-for-user.args` patches the shipped agent frontmatter at build time instead.
+Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values. Project overrides beat user overrides. In engineering-agents-managed deployments, the `agentOverrides` argument of `makePiConfig`/`engineering-agents.pi-for-user.args` patches the shipped agent frontmatter at build time instead.
 
-`fallbackModels` was removed in pi-subagents 0.68: an agent file or override that still sets it fails to load. Configure one model per agent.
+`fallbackModels` is unsupported: an agent file or override that sets it fails to load. Configure one model per agent.
 
 `subagents.defaultModel` applies only to agents **without** an explicit model (frontmatter `model:` and any per-agent override win).
 

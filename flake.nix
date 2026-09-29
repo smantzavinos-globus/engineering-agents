@@ -282,7 +282,7 @@
                    extensions/startup-staleness-warning/index.ts; do
             test -e "$cfgd/agent/$f" || { echo "MISSING: agent/$f"; exit 1; }
           done
-          for a in planner plan-reviewer code-reviewer worker ui-worker researcher vision oracle; do
+          for a in planner plan-reviewer code-reviewer worker worker-high worker-low ui-worker researcher vision oracle; do
             test -f "$cfgd/agent/agents/$a.md" || { echo "MISSING: agents/$a.md"; exit 1; }
           done
           for s in discovery design discover-and-design discover-and-design-simple \
@@ -317,10 +317,10 @@
           # Patched frontmatter: model replaced, thinking patched.
           grep -Fqx 'model: zai-coding-plan/glm-5.3' "$cfgd/agent/agents/worker.md" \
             || { echo "FAIL: worker model patch missing"; exit 1; }
-          # pi-subagents >=0.68 rejects fallbackModels in agent frontmatter
-          # (hard load error): no shipped or patched agent may carry it.
+          # fallbackModels is unsupported in agent frontmatter (hard load
+          # error): no shipped or patched agent may carry it.
           if grep -l '^fallbackModels:' "$cfgd"/agent/agents/*.md; then
-            echo "FAIL: agent frontmatter still declares removed fallbackModels"; exit 1
+            echo "FAIL: agent frontmatter declares unsupported fallbackModels"; exit 1
           fi
           grep -Fqx 'model: zai-coding-plan/glm-5.2' "$cfgd/agent/agents/code-reviewer.md" \
             || { echo "FAIL: unspecified fields must pass through (code-reviewer model)"; exit 1; }

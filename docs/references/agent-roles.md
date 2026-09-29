@@ -63,12 +63,13 @@ assessment:
 
 - every role above has a named model (or an explicit "default" record);
 - the Implementer tier mapping is stated (which model is `high`, which is
-  `low`);
+  `low`); in Pi each tier is its own agent (`worker-high`, `worker-low`), so
+  the mapping is ordinary per-agent config and the orchestrator never passes
+  a model per dispatch;
 - critical roles (implementers, Planner, Reviewer) state a manual fallback
   order (the next model to re-dispatch when the primary is unavailable).
-  Do not configure automatic fallback chains: pi-subagents 0.68 removed
-  `fallbackModels`, and an agent file or override that still declares the
-  key fails to load;
+  Do not configure `fallbackModels`: it is unsupported, and an agent file or
+  override that declares it fails to load;
 - the assignment is auditable — a reviewer can tell from repo config alone
   which model reviewed the code.
 

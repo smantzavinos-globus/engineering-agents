@@ -176,7 +176,7 @@ in
       lib.nameValuePair ".pi/agent/agents/${name}.md" {
         source = "${piConfigTree}/agent/agents/${name}.md";
       }
-    ) [ "planner" "plan-reviewer" "code-reviewer" "worker" "ui-worker" "researcher" "vision" "oracle" ]
+    ) [ "planner" "plan-reviewer" "code-reviewer" "worker" "worker-high" "worker-low" "ui-worker" "researcher" "vision" "oracle" ]
     ) // builtins.listToAttrs (map (name:
       lib.nameValuePair ".pi/agent/skills/${name}" {
         source = "${piConfigTree}/agent/skills/${name}";

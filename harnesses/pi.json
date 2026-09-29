@@ -44,6 +44,14 @@
       "kind": "agent",
       "agent": "worker"
     },
+    "executeTaskHigh": {
+      "kind": "agent",
+      "agent": "worker-high"
+    },
+    "executeTaskLow": {
+      "kind": "agent",
+      "agent": "worker-low"
+    },
     "fix": {
       "kind": "agent",
       "agent": "worker"

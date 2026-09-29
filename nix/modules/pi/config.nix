@@ -48,10 +48,9 @@ let
         type = "git";
         packageName = "pi-subagents";
         # Released v0.73.1 tag (npm gitHead). Needs Pi >=0.86.1 (pi-ai peer)
-        # and vendors undici 8.10.0. 0.68.0 removed `fallbackModels`: agent
-        # frontmatter or overrides using it are a hard load error, so the
-        # shipped agents and agentOverrides no longer carry it. Keeps the Bun
-        # promise-hook fallback + acorn workflowScript parsing (post-0.50.0).
+        # and vendors undici 8.10.0. `fallbackModels` is unsupported: agent
+        # frontmatter or overrides using it are a hard load error. Keeps the
+        # Bun promise-hook fallback + acorn workflowScript parsing.
         # Entry point: ./index.ts.
         spec = "github:nicobailon/pi-subagents#8a403efba6975988cc0488ec8bb941db5ef1a19e";
         installSpec = "github:nicobailon/pi-subagents#8a403efba6975988cc0488ec8bb941db5ef1a19e";
@@ -697,8 +696,8 @@ let
       # agents out; the shipped repo agents (agents/*.md) are custom agents.
       # subagentDefaultModel applies only to agents WITHOUT an explicit model;
       # subagentOverrides (subagents.agentOverrides) replace frontmatter
-      # fields on pi-subagents >=0.73 (older releases skipped them); prefer
-      # makePiConfig's build-time agentOverrides for per-consumer routing.
+      # fields; prefer makePiConfig's build-time agentOverrides for
+      # per-consumer routing.
       subagents = { disableBuiltins = true; }
         // lib.optionalAttrs (subagentDefaultModel != null) {
           defaultModel = subagentDefaultModel;
@@ -937,15 +936,13 @@ let
   # Patch a shipped agent definition's frontmatter at build time (the pi
   # analogue of opencode's agentModelOverrides). Settings-level
   # This keeps per-consumer routing (model:, thinking:) in the shipped agent
-  # file itself, so it does not depend on settings-level override precedence
-  # (pi-subagents >=0.73 lets subagents.agentOverrides replace frontmatter;
-  # older releases skipped frontmatter-declared fields).
+  # file itself, so it does not depend on settings-level override precedence.
   # Unspecified fields pass through unchanged; the derivation self-verifies.
-  # pi-subagents >=0.68 removed `fallbackModels` (a hard load error in
-  # frontmatter or overrides); reject it here instead of shipping a broken agent.
+  # `fallbackModels` is unsupported (a hard load error in frontmatter or
+  # overrides); reject it here instead of shipping a broken agent.
   patchAgentMd = name: override:
     assert lib.assertMsg (!(override ? fallbackModels))
-      "agentOverrides.${name}.fallbackModels: pi-subagents >=0.68 removed fallbackModels; configure one model instead";
+      "agentOverrides.${name}.fallbackModels: unsupported; configure one model instead";
     pkgs.runCommand "pi-agent-${name}-patched.md" {
       model = override.model or "";
       thinking = override.thinking or "";
@@ -996,6 +993,8 @@ let
     "plan-reviewer"
     "code-reviewer"
     "worker"
+    "worker-high"
+    "worker-low"
     "ui-worker"
     "researcher"
     "vision"
@@ -1054,7 +1053,7 @@ in
   assert lib.assertMsg (unknownAgentOverrides == [])
     "makePiConfig agentOverrides references unknown agents: ${toString unknownAgentOverrides} (known: ${toString piAgents})";
   assert lib.assertMsg (lib.all (o: !(lib.isAttrs o && o ? fallbackModels)) (lib.attrValues subagentOverrides))
-    "makePiConfig subagentOverrides: pi-subagents >=0.68 removed fallbackModels (settings load error); configure one model instead";
+    "makePiConfig subagentOverrides: fallbackModels is unsupported (settings load error); configure one model instead";
   let
     settings = makePiSettings {
       inherit

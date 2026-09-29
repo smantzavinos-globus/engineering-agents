@@ -126,7 +126,7 @@ done
 # Verify agent refs
 AGENT_REFS=(
   "agents/planner.md" "agents/plan-reviewer.md" "agents/code-reviewer.md"
-  "agents/worker.md" "agents/ui-worker.md" "agents/researcher.md"
+  "agents/worker.md" "agents/worker-high.md" "agents/worker-low.md" "agents/ui-worker.md" "agents/researcher.md"
   "agents/vision.md" "agents/oracle.md"
 )
 for ref in "${AGENT_REFS[@]}"; do

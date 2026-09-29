@@ -377,7 +377,7 @@ create plan + task graph -> review -> approval
 |---|---|
 | Parent orchestrator | primary Pi session with the `execute` preset |
 | Contract author | `planner` |
-| Implementer | `worker`, or `ui-worker` for frontend work |
+| Implementer | `worker-high` / `worker-low` by task tier, or `ui-worker` for frontend work |
 | Group reviewer | `code-reviewer` with the `dynamic-review-code` skill |
 | Final reviewer | `oracle`, fresh context |
 
@@ -393,8 +393,8 @@ roles to categories. Repository/user overrides remain the source of truth.
 |---|---|---|
 | Parent orchestrator | primary session (`execute` preset) | primary Execute agent/chat |
 | Planner / contract author | `planner` | category `deep` |
-| Standard implementer | `worker` | category `unspecified-high` |
-| Mechanical / bounded-cheap implementer | `worker` on the cheap model | category `unspecified-low` |
+| Implementer, high tier | `worker-high` | category `unspecified-high` |
+| Implementer, low tier | `worker-low` | category `unspecified-low` |
 | Visual implementer | `ui-worker` | category `visual-engineering` |
 | Plan reviewer | `plan-reviewer` | category `deep` |
 | Group / code reviewer | `code-reviewer` | category `unspecified-high` |
@@ -492,7 +492,7 @@ full protocol.
 | Execute — create plan | sub-agent | `planner` | `create-plan` | Frontier (reasoning) | Needs strong decomposition |
 | Execute — review plan | sub-agent | `plan-reviewer` | `review-plan` | Frontier (reasoning) | Logical cross-section analysis |
 | Execute — create worklog | sub-agent | `worker` | `create-worklog` | Execution | Mechanical extraction |
-| Execute — implement task | sub-agent | `worker` or `ui-worker` | `execute-task` | Execution / Execution (UI) | Use ui-worker for frontend tasks |
+| Execute — implement task | sub-agent | `worker-high`, `worker-low`, or `ui-worker` | `execute-task` | Execution / Execution (UI) | Route by the task's Execution tier; ui-worker for frontend tasks |
 | Execute — per-task review | sub-agent | `code-reviewer` | `review-code` | Frontier (code) | Catch errors early |
 | Execute — fix task issues | sub-agent | `worker` or `ui-worker` | — | Execution | Match worker type to domain |
 | Execute — final code review | sub-agent | `code-reviewer` | `review-code` | Frontier (code) | Full branch diff analysis |
@@ -709,7 +709,7 @@ Create `.pi/settings.json` in the repo root and add a `subagents.agentOverrides`
 
 Supported override fields: `model`, `thinking`, `skills`, `tools`, `systemPrompt`, `systemPromptMode`, `inheritProjectContext`, `inheritSkills`, `defaultContext`, `disabled`.
 
-Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values (pi-subagents >=0.73; earlier releases skipped frontmatter-declared fields). Project overrides beat user overrides. pi-subagents 0.68 removed `fallbackModels`; a definition or override that still sets it fails to load.
+Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values. Project overrides beat user overrides. `fallbackModels` is unsupported; a definition or override that sets it fails to load.
 
 ### Common Per-Repo Configurations
 
