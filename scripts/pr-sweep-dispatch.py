@@ -13,7 +13,8 @@ Install: copy this file and pr-sweep-prompts/ into $HERMES_HOME/scripts/, then
 
 Environment:
   PR_SWEEP_REPOS          space-separated owner/repo list (required; PR_SWEEP_REPO also accepted)
-  PR_AGENT_HANDLE         handle whose mentions trigger: `@h review`, `@h fix` / `@h babysit`
+  PR_AGENT_HANDLE         handles whose mentions trigger: `@h review`, `@h fix` / `@h babysit`
+                          (space/comma-separated list: the account handle AND its natural aliases)
   PR_SWEEP_CHECKOUT_ROOT  directory holding local checkouts named by repo (default ~/repos)
   PR_REVIEW_MODEL, PR_REVIEW_REASONING (medium), PR_REVIEW_SKILLS (pull-request)
   PR_BABYSIT_MODEL, PR_BABYSIT_SKILLS (babysit-pr)
@@ -35,7 +36,13 @@ from datetime import datetime
 
 ENV = os.environ
 REPOS = (ENV.get("PR_SWEEP_REPOS") or ENV.get("PR_SWEEP_REPO") or "").split()
-HANDLE = ENV.get("PR_AGENT_HANDLE", "").lstrip("@").lower()
+def parse_handles(raw):
+    """PR_AGENT_HANDLE vocabulary: handles on whitespace or commas; '@' and case are normalized."""
+    return tuple(h for h in (p.strip().lstrip("@").lower() for p in (raw or "").replace(",", " ").split()) if h)
+
+
+HANDLES = parse_handles(ENV.get("PR_AGENT_HANDLE", ""))
+HANDLE = HANDLES[0] if HANDLES else ""  # primary handle, for prompt templates
 CHECKOUT_ROOT = pathlib.Path(ENV.get("PR_SWEEP_CHECKOUT_ROOT", str(pathlib.Path.home() / "repos")))
 REVIEW_MODEL = ENV.get("PR_REVIEW_MODEL", "")
 REVIEW_REASONING = ENV.get("PR_REVIEW_REASONING", "medium")
@@ -100,17 +107,24 @@ def sweep_owned(comments):
     return bool(beats) and beats[-1].group(1).startswith(SWEEP_CLAIM_PREFIX)
 
 
-def mentions(comments, handle, seen_ids):
-    """Newest unprocessed (review_comment, babysit_comment). `fix` and `babysit` both mean an author round."""
+def mentions(comments, handles, seen_ids):
+    """Newest unprocessed (review_comment, babysit_comment) across the handle vocabulary.
+
+    `fix` and `babysit` both mean an author round. A comment is ignored when the
+    author IS one of the configured handles (self-mention) — not just the primary.
+    """
     review = babysit = None
-    if not handle:
+    if not handles:
         return None, None
-    tag = f"@{handle}"
+    tags = [f"@{h}" for h in handles]
     for c in comments:
         body = (c.get("body") or "").lower()
-        if c["id"] in seen_ids or tag not in body or c["user"]["login"].lower() == handle:
+        if c["id"] in seen_ids or c["user"]["login"].lower() in handles:
             continue
-        if f"{tag} babysit" in body or f"{tag} fix" in body:
+        hit = next((t for t in tags if t in body), None)
+        if hit is None:
+            continue
+        if f"{hit} babysit" in body or f"{hit} fix" in body:
             babysit = c
         else:
             review = c
@@ -219,7 +233,7 @@ def sweep_repo(repo, recs, reported):
             if last_v[0] == "READY":
                 out.append(f"{repo}#{n}: new commits after READY at {last_v[1][:8]}; moved back to pr:re-review.")
 
-        mention_review, mention_babysit = mentions(comments, HANDLE, {r.get("comment_id") for r in mine})
+        mention_review, mention_babysit = mentions(comments, HANDLES, {r.get("comment_id") for r in mine})
 
         claim = claim_state(labels, comments, time.time())
         babysitter_running = any(r["kind"] == "babysit" for r in running)

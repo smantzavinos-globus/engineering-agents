@@ -262,7 +262,7 @@ hermes cron create "every 2m" --no-agent --script pr-sweep-dispatch.py --name pr
 
 Install:  copy scripts/pr-sweep-dispatch.py and scripts/pr-sweep-prompts/
           into $HERMES_HOME/scripts/
-Env:      PR_SWEEP_REPOS="owner/repo-a owner/repo-b"   PR_AGENT_HANDLE=<handle>
+Env:      PR_SWEEP_REPOS="owner/repo-a owner/repo-b"   PR_AGENT_HANDLE="handle [alias ...]"
           PR_REVIEW_MODEL (strong)  PR_BABYSIT_MODEL (cheaper)
           PR_REVIEW_SKILLS / PR_BABYSIT_SKILLS (add repo overlay skills)
           PR_SWEEP_CHECKOUT_ROOT (local checkouts, default ~/repos)
