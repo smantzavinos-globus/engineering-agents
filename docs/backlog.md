@@ -62,12 +62,13 @@ _No items yet._
     - **AUDIT VERDICT (2026-07-13): RETIRE FORK.** Upstream `src/index.ts` has the same shutdown handler. **Decision (2026-09-23): remove GitNexus altogether** because it is unused. Remove its managed source, optional module switches, and CLI wiring; do not replace it with upstream.
   - Any fork we drop must keep the pinned-commit + idempotent-install contract (see `nix/AGENTS.md`) and update `tests/fixtures/proof-set.json`.
 
-## Inbox
-
 ### TASK-0005 — Onboard engineering-agents itself with a root pr-review-hooks.md manifest
-- Status: Inbox
+- Status: Done
 - Summary: The repo defines the PR review process (`docs/references/pr-review.md`) and its Required Repo Hooks table, but has no root `pr-review-hooks.md` manifest of its own — a reviewer of this repo's PRs proceeds on task-supplied facts instead of the fixed-shape manifest (found during the independent review of PR #18, 2026-09-28). Fix: run `assess-repo` against this repo and draft the manifest (review-inputs / review-rules / verification-commands / evidence-captures / pr-tracking / merge-gate), routing it from root `AGENTS.md`.
 - Source: Reviewer MINOR finding on PR #18 (review comment 5880478914); parent session onboarding run 2026-09-28.
+- Resolution (2026-09-29): manifest drafted at repo root (fixed-shape sections); verification rows copied from the repo's own canonical commands (`docs/testing-strategy.md`); devShell gained `python3` (fixes the 4 red fast-suite specs on `main`); root `AGENTS.md` routing line lands as a separate owner-present edit per the protected-file rule.
+
+## Inbox
 
 ### TASK-0003 — Fix resource-snapshot.mjs Pi module path resolution through the startup wrapper
 - Status: Inbox
