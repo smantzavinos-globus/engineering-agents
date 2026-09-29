@@ -403,6 +403,11 @@ directory), up to **3** failures per item, stage and reason; then it stops
 and notifies the owner once. A pickup that cannot even start is bounded the
 same way.
 
+**Merge completion (T17).** Where the tracker's own merged-PR automation is
+off, the work tick completes T17: an `In review` item whose issue is closed
+moves to `Done` with a note. The list command therefore also returns closed
+items that are still `In review`.
+
 **Shared account.** When the owner and the agent post from the same login,
 the repo says so in its Owner hook. Replies are then recognised by format
 alone: a comment from that login counts only if it carries no pipeline

@@ -166,6 +166,13 @@ OUT="$(run work ITEMS="$TMP/items13.json" PIPELINE_OWNERS=agent PIPELINE_SHARED_
 refute "$OUT" "would spawn work for #70" "shared: a comment carrying an agent marker is never a reply"
 rm -f "$TMP"/c*.json
 
+
+# --- T17: merged PR closed the issue; the tick completes the move to Done
+echo '[{"number":80,"title":"t","status":"In review","state":"CLOSED","stage":"PR","track":"fast-path","priority":"P2","autonomy":"","updatedAt":"2026-01-01T00:00:00Z"},{"number":81,"title":"t","status":"In review","state":"OPEN","stage":"PR","track":"fast-path","priority":"P2","autonomy":"","updatedAt":"2026-01-01T00:00:00Z"}]' > "$TMP/items14.json"
+OUT="$(run work ITEMS="$TMP/items14.json")"
+check  "$OUT" "would move #80 to Done" "T17: a closed In review item moves to Done"
+refute "$OUT" "would move #81" "T17: an open In review item is left alone"
+
 # --- hygiene
 echo "[$(item 50 'Awaiting approval' Design),$(item 51 Blocked Execute)]" > "$TMP/items7.json"
 echo '[{"number":9,"labels":[],"isDraft":false},{"number":8,"labels":[{"name":"pr:ready-review"}],"isDraft":false}]' > "$TMP/prs.json"
