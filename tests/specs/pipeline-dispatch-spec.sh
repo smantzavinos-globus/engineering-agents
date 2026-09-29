@@ -173,6 +173,12 @@ OUT="$(run work ITEMS="$TMP/items14.json")"
 check  "$OUT" "would move #80 to Done" "T17: a closed In review item moves to Done"
 refute "$OUT" "would move #81" "T17: an open In review item is left alone"
 
+
+# --- triage batch cap
+echo "[$(item 91 Inbox),$(item 92 Inbox),$(item 93 Inbox)]" > "$TMP/items15.json"
+OUT="$(run triage ITEMS="$TMP/items15.json" PIPELINE_TRIAGE_BATCH=2)"
+check  "$OUT" "(#91 #92)" "triage: a session takes at most PIPELINE_TRIAGE_BATCH items, oldest first"
+
 # --- hygiene
 echo "[$(item 50 'Awaiting approval' Design),$(item 51 Blocked Execute)]" > "$TMP/items7.json"
 echo '[{"number":9,"labels":[],"isDraft":false},{"number":8,"labels":[{"name":"pr:ready-review"}],"isDraft":false}]' > "$TMP/prs.json"
