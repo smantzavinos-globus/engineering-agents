@@ -255,10 +255,6 @@ def alive(pid):
         return False
 
 
-def has_result(rec):
-    return (RESULTS / f"{rec.get('tag')}.json").exists()
-
-
 def worktree(n, reason):
     """Path of item n's worktree on item/<n>, created from the pushed branch or the base."""
     path = WT_ROOT / f"item-{n}"

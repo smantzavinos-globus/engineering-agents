@@ -64,5 +64,15 @@ check  "$OUT" "bot-review cap (5) reached" "bot-review cap is reported once"
 OUT="$(run BOT_REVIEWS=5 GH_BIN="$BOT")"
 check  "$OUT" "would spawn babysit for o/r#7" "bot-review cap: the 5th bot review still gets a round"
 
+# A round consumes EVERY bot review it saw: the dispatch record's bot_review_ids are
+# read back as handled, so two bot reviews between ticks cost one round, not two.
+mkdir -p "$TMP/state"
+printf '%s\n' '{"ts":0,"kind":"babysit","repo":"o/r","pr":7,"head":"7777777777777777777777777777777777777777","bot_review_id":702,"bot_review_ids":[701,702]}' > "$TMP/state/dispatches.jsonl"
+OUT="$(run BOT_REVIEWS=2 GH_BIN="$BOT")"
+refute "$OUT" "would spawn babysit for o/r#7" "bot-review batching: a record carrying all seen ids suppresses the follow-up round"
+printf '%s\n' '{"ts":0,"kind":"babysit","repo":"o/r","pr":7,"head":"7777777777777777777777777777777777777777","bot_review_id":701}' > "$TMP/state/dispatches.jsonl"
+OUT="$(run BOT_REVIEWS=2 GH_BIN="$BOT")"
+check  "$OUT" "would spawn babysit for o/r#7" "bot-review batching: a pre-fix single-id record still gets the round for the second review"
+
 printf '\nResults: %d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

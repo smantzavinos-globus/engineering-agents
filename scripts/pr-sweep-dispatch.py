@@ -125,14 +125,18 @@ def bot_reviews(reviews, bots=BOT_REVIEWERS):
 
 
 def bot_round_due(bot_revs, handled_ids, cap=BOT_CAP):
-    """(review, capped): the newest unhandled bot review if a round is due, and whether the cap is hit.
+    """(review, capped, seen_ids): the newest unhandled bot review if a round is due,
+    whether the cap is hit, and ALL unhandled ids to record with the round.
 
-    GitHub's review list is the counter: the cap counts completed bot reviews on the PR."""
+    GitHub's review list is the counter: the cap counts completed bot reviews on the
+    PR. The dispatch record carries every unhandled review id, not just the dispatched
+    one, so several bot reviews landing between ticks are all consumed by the single
+    round they trigger instead of queuing one no-op round each."""
     capped = len(bot_revs) > cap
     pending = [r for r in bot_revs if r["id"] not in handled_ids]
     if not pending or capped:
-        return None, capped
-    return pending[-1], False
+        return None, capped, []
+    return pending[-1], False, [r["id"] for r in pending]
 
 
 def mentions(comments, handles, seen_ids):
@@ -303,7 +307,12 @@ def sweep_repo(repo, recs, reported):
         verdict_id = last_v[2]["id"] if last_v else None
         round_done = any(r["kind"] == "babysit" and r["head"] == head and r.get("verdict_id") == verdict_id for r in mine)
         owned = claim == "active" and sweep_owned(comments)
-        bot_rev, capped = bot_round_due(bot_reviews(reviews), {r.get("bot_review_id") for r in mine})
+        handled_bots = set()
+        for r in mine:
+            if r.get("bot_review_id"):
+                handled_bots.add(r["bot_review_id"])
+            handled_bots.update(r.get("bot_review_ids") or [])
+        bot_rev, capped, bot_seen = bot_round_due(bot_reviews(reviews), handled_bots)
         if capped and owned:
             key = f"botcap:{repo}#{n}"
             if key not in reported:
@@ -316,7 +325,8 @@ def sweep_repo(repo, recs, reported):
             rec = {"ts": time.time(), "kind": "babysit", "repo": repo, "pr": n, "head": head,
                    "comment_id": mention_babysit["id"] if mention_babysit else None,
                    "verdict_id": verdict_id if fix_round or mention_babysit else None,
-                   "bot_review_id": bot_rev["id"] if bot_round else None}
+                   "bot_review_id": bot_rev["id"] if bot_round else None,
+                   "bot_review_ids": bot_seen if bot_round else []}
             try:
                 rec["pid"], rec["tag"] = spawn("babysit", repo, pr, head, BABYSIT_MODEL, "medium", BABYSIT_SKILLS,
                                                {"fix_loops": sum(1 for v in vs if v[0] == "FIX"),

@@ -67,6 +67,22 @@ class StateLabel(unittest.TestCase):
         self.assertEqual(d.state_label(["pr:ready-review", "pr:in-review"], "ignore"), "pr:in-review")
 
 
+class BotRounds(unittest.TestCase):
+    def test_round_returns_all_unhandled_ids(self):
+        revs = [{"id": 701}, {"id": 702}]
+        rev, capped, seen = d.bot_round_due(revs, set())
+        self.assertEqual(rev["id"], 702)
+        self.assertFalse(capped)
+        self.assertEqual(seen, [701, 702])  # every unhandled review is consumed by this round
+        rev, capped, seen = d.bot_round_due(revs, {701})
+        self.assertEqual((rev["id"], capped, seen), (702, False, [702]))
+        rev, capped, seen = d.bot_round_due(revs, {701, 702})
+        self.assertEqual((rev, capped, seen), (None, False, []))
+        six = [{"id": i} for i in range(700, 706)]
+        rev, capped, seen = d.bot_round_due(six, set())
+        self.assertEqual((rev, capped, seen), (None, True, []))
+
+
 class Mentions(unittest.TestCase):
     def test_review_fix_babysit_self_and_seen(self):
         cs = [comment(1, "h", "@bot review please"),

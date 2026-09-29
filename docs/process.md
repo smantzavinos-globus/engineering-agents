@@ -164,7 +164,7 @@ brief → research → approach → approach review
 
 **Loop behavior:** The orchestrator runs plan reviews iteratively until the pass criteria is met. Each review pass is one sub-agent call. The review is complete only when zero significant issues are found in a pass.
 
-**Commit checkpoint:** After plan review is clean and the human approves implementation, commit `plan.md`, `plan_review.md`, and state updates as `plan: approve implementation plan for <slug>` before creating or executing from the worklog.
+**Commit checkpoint:** After plan review is clean and the human approves implementation, commit `plan.md`, `plan_review.md`, and state updates as `plan: approve implementation plan for <slug>` before creating or executing from the worklog. (Delivery-pipeline items with `Autonomy: auto` skip this approval — see [Delivery pipeline](references/delivery-pipeline.md#2-work-inside-in-progress-by-track).)
 
 ---
 

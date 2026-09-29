@@ -300,8 +300,9 @@ need a free slot. New pickups take `Up next` items in Priority order, oldest
 first within a priority.
 
 **Isolation.** One worktree and branch per item, named per the dispatch
-contract. A session owns an item through its claim; the dispatcher releases
-claims whose session died.
+contract. The claim comment (`work: session=…`) is an audit trail for humans:
+dispatch records, not claims, guarantee one session per item (§7), so a retried
+session simply overwrites the claim a dead session left behind.
 
 ---
 
