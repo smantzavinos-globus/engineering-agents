@@ -37,5 +37,32 @@ check  "$OUT" "new commits after READY" "stale READY is reported to the human"
 OUT="$(PR_SWEEP_UNLABELED=review run)"
 check  "$OUT" "would spawn review for o/r#1" "drift mode: unlabeled PR is reviewed"
 
+
+# Babysit on open: a sweep-owned claim gets a round on a new bot review, never ages,
+# and stops at the bot-review cap.
+BOT="$TMP/gh-bot"
+cat > "$BOT" <<'EOF'
+#!/usr/bin/env bash
+old='{"number":7,"title":"owned","headRefName":"item/7","headRefOid":"7777777777777777777777777777777777777777","labels":[{"name":"pr:babysat"},{"name":"pr:in-review"}],"isDraft":false}'
+case "$*" in
+  "pr list"*) echo "[$old]" ;;
+  *"issues/7/comments"*) echo '[{"id":70,"user":{"login":"agent"},"body":"babysit: session=babysit-pr-item7-x heartbeat=2000-01-01T00:00:00Z"}]' ;;
+  *"pulls/7/reviews"*)
+    n="${BOT_REVIEWS:-1}"; printf '['
+    for i in $(seq 1 "$n"); do [[ $i -gt 1 ]] && printf ','; printf '{"id":%d,"user":{"login":"copilot-pull-request-reviewer[bot]"},"state":"COMMENTED","submitted_at":"2026-01-01T00:00:00Z"}' "$((700+i))"; done
+    printf ']\n' ;;
+  *) echo '[]' ;;
+esac
+EOF
+chmod +x "$BOT"
+OUT="$(run GH_BIN="$BOT")"
+check  "$OUT" "would spawn babysit for o/r#7" "sweep-owned claim: new bot review dispatches a babysit round"
+refute "$OUT" "claim went stale" "sweep-owned claim does not age by heartbeat"
+OUT="$(run BOT_REVIEWS=6 GH_BIN="$BOT")"
+refute "$OUT" "would spawn babysit for o/r#7" "bot-review cap: no round past 5 bot reviews"
+check  "$OUT" "bot-review cap (5) reached" "bot-review cap is reported once"
+OUT="$(run BOT_REVIEWS=5 GH_BIN="$BOT")"
+check  "$OUT" "would spawn babysit for o/r#7" "bot-review cap: the 5th bot review still gets a round"
+
 printf '\nResults: %d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

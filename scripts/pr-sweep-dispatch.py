@@ -20,7 +20,10 @@ Environment:
   PR_BABYSIT_MODEL, PR_BABYSIT_SKILLS (babysit-pr)
   PR_SESSION_PROVIDER     provider passed to `hermes chat`
   PR_SWEEP_UNLABELED      ignore (default: opt-in) | review (drift: unlabeled = awaiting review)
-  PR_BABYSIT_STALE_MIN    (60)   PR_REVIEW_STUCK_MIN (90)
+  PR_BABYSIT_STALE_MIN    (60; chat-started claims only)   PR_REVIEW_STUCK_MIN (90)
+  PR_BOT_REVIEWERS        bot logins whose reviews trigger sweep-owned babysit rounds
+                          (default copilot-pull-request-reviewer[bot])
+  PR_BOT_REVIEW_CAP       max bot-review rounds per PR (default 5)
   PR_SWEEP_STATE          state dir (default $HERMES_HOME/state/pr-automation)
   HERMES_BIN, GH_BIN, GH_TOKEN_FILE (token file used when GH_TOKEN is unset)
   PR_SWEEP_DRY=1          print the intended actions; mutate nothing, record nothing
@@ -52,6 +55,8 @@ BABYSIT_SKILLS = ENV.get("PR_BABYSIT_SKILLS", "babysit-pr")
 PROVIDER = ENV.get("PR_SESSION_PROVIDER", "")
 UNLABELED = ENV.get("PR_SWEEP_UNLABELED", "ignore")
 STALE_MIN = int(ENV.get("PR_BABYSIT_STALE_MIN", "60"))
+BOT_REVIEWERS = tuple(ENV.get("PR_BOT_REVIEWERS", "copilot-pull-request-reviewer[bot]").split())
+BOT_CAP = int(ENV.get("PR_BOT_REVIEW_CAP", "5"))
 STUCK_MIN = int(ENV.get("PR_REVIEW_STUCK_MIN", "90"))
 DRY = bool(ENV.get("PR_SWEEP_DRY"))
 HERMES = ENV.get("HERMES_BIN", "hermes")
@@ -89,12 +94,17 @@ def verdicts(comments):
 
 
 def claim_state(labels, comments, now_s, stale_min=STALE_MIN):
-    """Babysit claim: 'none' | 'active' | 'stale'. A label with no readable heartbeat is stale."""
+    """Babysit claim: 'none' | 'active' | 'stale'. A label with no readable heartbeat is stale.
+
+    Sweep-owned claims never age: between rounds nobody runs by design, and the
+    sweep tracks their sessions through its own dispatch records."""
     if "pr:babysat" not in labels:
         return "none"
     beats = [m for c in comments for m in [HEARTBEAT_RE.search(c.get("body") or "")] if m]
     if not beats:
         return "stale"
+    if beats[-1].group(1).startswith(SWEEP_CLAIM_PREFIX):
+        return "active"
     try:
         t = datetime.fromisoformat(beats[-1].group(2).replace("Z", "+00:00")).timestamp()
     except ValueError:
@@ -105,6 +115,24 @@ def claim_state(labels, comments, now_s, stale_min=STALE_MIN):
 def sweep_owned(comments):
     beats = [m for c in comments for m in [HEARTBEAT_RE.search(c.get("body") or "")] if m]
     return bool(beats) and beats[-1].group(1).startswith(SWEEP_CLAIM_PREFIX)
+
+
+def bot_reviews(reviews, bots=BOT_REVIEWERS):
+    """Completed reviews by configured bot accounts, oldest first."""
+    return sorted((r for r in reviews if (r.get("user") or {}).get("login") in bots
+                   and r.get("state") not in (None, "PENDING") and r.get("submitted_at")),
+                  key=lambda r: r["id"])
+
+
+def bot_round_due(bot_revs, handled_ids, cap=BOT_CAP):
+    """(review, capped): the newest unhandled bot review if a round is due, and whether the cap is hit.
+
+    GitHub's review list is the counter: the cap counts completed bot reviews on the PR."""
+    capped = len(bot_revs) > cap
+    pending = [r for r in bot_revs if r["id"] not in handled_ids]
+    if not pending or capped:
+        return None, capped
+    return pending[-1], False
 
 
 def mentions(comments, handles, seen_ids):
@@ -213,6 +241,7 @@ def sweep_repo(repo, recs, reported):
         labels = [l["name"] for l in pr["labels"]]
         label = state_label(labels)
         comments = gh("api", f"repos/{repo}/issues/{n}/comments?per_page=100")
+        reviews = gh("api", f"repos/{repo}/pulls/{n}/reviews?per_page=100")
         vs = verdicts(comments)
         last_v = vs[-1] if vs else None
         mine = [r for r in recs if r.get("repo") == repo and r["pr"] == n]
@@ -273,14 +302,26 @@ def sweep_repo(repo, recs, reported):
         fix_at_head = bool(last_v) and last_v[0] == "FIX" and head.startswith(last_v[1])
         verdict_id = last_v[2]["id"] if last_v else None
         round_done = any(r["kind"] == "babysit" and r["head"] == head and r.get("verdict_id") == verdict_id for r in mine)
-        want_babysit = (bool(mention_babysit) and claim == "none") or (
-            claim == "active" and sweep_owned(comments) and fix_at_head and not round_done)
+        owned = claim == "active" and sweep_owned(comments)
+        bot_rev, capped = bot_round_due(bot_reviews(reviews), {r.get("bot_review_id") for r in mine})
+        if capped and owned:
+            key = f"botcap:{repo}#{n}"
+            if key not in reported:
+                reported.add(key)
+                out.append(f"{repo}#{n}: bot-review cap ({BOT_CAP}) reached; no more bot rounds.")
+        fix_round = owned and fix_at_head and not round_done
+        bot_round = owned and bot_rev is not None and not fix_round
+        want_babysit = (bool(mention_babysit) and claim == "none") or fix_round or bot_round
         if want_babysit and not babysitter_running:
             rec = {"ts": time.time(), "kind": "babysit", "repo": repo, "pr": n, "head": head,
-                   "comment_id": mention_babysit["id"] if mention_babysit else None, "verdict_id": verdict_id}
+                   "comment_id": mention_babysit["id"] if mention_babysit else None,
+                   "verdict_id": verdict_id if fix_round or mention_babysit else None,
+                   "bot_review_id": bot_rev["id"] if bot_round else None}
             try:
                 rec["pid"], rec["tag"] = spawn("babysit", repo, pr, head, BABYSIT_MODEL, "medium", BABYSIT_SKILLS,
-                                               {"fix_loops": sum(1 for v in vs if v[0] == "FIX")})
+                                               {"fix_loops": sum(1 for v in vs if v[0] == "FIX"),
+                                                "bot_rounds": len(bot_reviews(reviews)), "bot_cap": BOT_CAP,
+                                                "trigger": "bot review" if bot_round else "verdict"})
             except Exception as e:  # noqa: BLE001
                 rec["error"] = str(e)[:300]
             record(recs, rec)

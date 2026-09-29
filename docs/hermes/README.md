@@ -53,6 +53,10 @@ agents using this repo as a live reference read these directly.
 | PR body + one verdict | `skills/pull-request/SKILL.md` |
 | Live-PR review cycling (session-scoped) | `skills/babysit-pr/SKILL.md` |
 | PR monitoring infrastructure | [PR automation](pr-automation.md) |
+| Backlog operations (capture, move, gates, claims) | `skills/backlog/SKILL.md` |
+| Inbox triage (dispatched) | `skills/triage-backlog/SKILL.md` |
+| Item work from pickup to PR (dispatched) | `skills/work-item/SKILL.md` |
+| Item pipeline infrastructure | [Delivery pipeline](../references/delivery-pipeline.md) |
 
 ## Agent self-setup checklist
 
@@ -66,7 +70,11 @@ An agent being handed ownership of one or more repos runs this once:
 2. **Sync your skills** against the checklist in
    [Software development process](dev-process.md), then create the sweep cron
    from the template in [PR automation](pr-automation.md) — one job covering
-   all owned repos.
+   all owned repos. If the repo runs the
+   [Delivery pipeline](../references/delivery-pipeline.md), also create its
+   triage, work and hygiene jobs from `scripts/pipeline-dispatch.py` (install
+   notes in its header; run each once with `PIPELINE_DRY=1` first), and confirm
+   the repo documents the pipeline hooks in its task-tracking doc.
 3. **Register the trigger surface**: confirm which GitHub handle mentions
    should trigger this agent, and check the repo's `pr-tracking` manifest
    row documents it.

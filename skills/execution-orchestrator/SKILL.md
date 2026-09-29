@@ -20,6 +20,7 @@ You are the autonomous execution coordinator. You manage the full lifecycle by c
 - Execution mode:
   - **approval-gate** (default): Stop after plan review for human approval before implementing
   - **auto-continue**: Only stop for critical/irreversible decisions
+  - **detached**: Run unattended under `work-item`. Every point where this skill would wait for the human becomes a gate comment on the backlog item (per the `backlog` skill), after which the session commits and ends. The item's `Autonomy` field decides the plan gate: `gated` posts it, `auto` continues.
 - Repo task-tracking/backlog policy, if documented in AGENTS.md or repo docs
 - Repo requirements policy, if documented and relevant to the plan
 
@@ -100,6 +101,13 @@ If mode is `approval-gate` (default):
 If mode is `auto-continue`:
 - Skip this gate
 - Only stop if a Blocker issue in plan review cannot be resolved automatically
+
+If mode is `detached`:
+- `Autonomy: auto` behaves like auto-continue.
+- `Autonomy: gated`: commit the reviewed plan, post the **Plan** gate on the item (task count, review passes, and any decisions the plan made that the human should see), and end the session. A later session resumes here on `approve`, or reruns Steps 1–2 with the reply on `revise:`.
+- Any pause elsewhere in this skill becomes a gate or a stop, never a chat question. Specifically: "ask the human" / "stop and ask" / "pause and report" / cap exhaustion / requirement conflict → **Escalation** gate; a missing task-tracking or requirements mechanism → Escalation gate; non-blocking follow-ups → list them as proposed items in the next gate instead of asking; a task reported blocked by an external dependency → mark the item `Blocked`; "Report final summary to the human" → the result file and the PR body.
+- Resume position comes from the committed artifacts (`state.json` phase, `worklog.md` NEXT STEP), which stay authoritative inside the plan. The item's `Stage` field only mirrors them for the dispatcher (`Plan` until the plan is approved, `Execute` after).
+- Epic roots are out of scope in detached mode: raise an Escalation gate recommending the item be split.
 
 After the plan review is clean and either the human approves or auto-continue applies, commit the approved planning checkpoint before creating the worklog:
 
@@ -250,9 +258,9 @@ When code review reports COMPLETE:
 - Do not skip the plan review loop (even if the plan "looks fine")
 - Do not skip the code review (even if all tests pass)
 - Do not create a detailed `plan.md` directly at an epic root
-- Do not auto-continue past the approval gate unless explicitly told to
+- Do not auto-continue past the approval gate unless explicitly told to (in `detached` mode, `Autonomy: auto` is that instruction)
 - Do not let accepted follow-up work exist only in chat; record it in the repo backlog and source artifact
 - Do not treat optional backlog items as current-plan blockers unless they expose a significant correctness issue
 - Do not leave intended stage or task changes uncommitted before stopping, except when explicitly waiting for human review
 - Do not run delegations asynchronously — every step depends on the previous step's output; use synchronous calls only
-- Do not push (all commits are local)
+- Do not push (all commits are local), except in `detached` mode, where `work-item` pushes the item branch and opens the PR

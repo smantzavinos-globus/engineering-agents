@@ -44,7 +44,10 @@ and update yours when the canon changes.
 | execution log | One current NEXT STEP; per-task atomic commits | `process.md` §Worklog/Execute |
 | task execution | Red→Green→Verify for contract/characterization; proving command for check/none | `testing-strategy.md` Verification classes |
 | code review | Coverage matrix, anti-patterns, severity calibration; reviewer ≠ implementer | `process.md` §Code Review |
-| PR preparation & review | Body contract, rules table, verdict + stamp | `references/pr-review.md` + the `pull-request` skill |
+| PR preparation & review | Body contract, rules table, verdict + stamp; author links the item and starts babysitting | `references/pr-review.md` + the `pull-request` skill |
+| backlog operations | Ask-before-capture, transitions by actor, claim/heartbeat, gate comment and reply grammar | `references/task-tracking.md`, `references/delivery-pipeline.md` + the `backlog` skill |
+| triage | Definition of Ready, field filling, questions with recommended answers; never Up next/Icebox/Canceled | the `triage-backlog` skill |
+| dispatched work | One stage per session, resume from committed artifacts, gates instead of chat questions | the `work-item` skill; `discover-and-design` unattended mode; `execution-orchestrator` detached mode |
 
 ## Refinements (conventions from practice, binding for our agents)
 

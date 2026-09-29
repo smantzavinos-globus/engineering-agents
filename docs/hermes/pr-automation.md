@@ -117,7 +117,16 @@ Rules that let them run on the same PR without fighting:
    (default 60 minutes), the claim is stale. The sweep then
    removes `pr:babysat`, treats the PR as a stuck state, and notifies the human
    once. The PR then falls back to normal sweep handling.
-7. **Who owns the round loop.** A babysitter started from chat runs its own
+7. **Babysit on open.** Under the [Delivery Pipeline](../references/delivery-pipeline.md#4-pr-lifecycle),
+   the author posts a sweep-owned claim (`session=babysit-pr…`) when opening
+   the PR, so babysitting starts without a mention. For sweep-owned claims the
+   sweep dispatches one round per new FIX verdict at the current head and one
+   round per new completed bot review (e.g. Copilot) while the PR's bot-review
+   count is under the cap (**5 per PR**, `PR_BOT_REVIEW_CAP`; bot login(s) in
+   `PR_BOT_REVIEWERS`). Bot reviews never count toward the fix-loop bound.
+   Sweep-owned claims are not aged by heartbeat (rule 6 applies to
+   chat-started claims only): between rounds nobody is running, by design.
+8. **Who owns the round loop.** A babysitter started from chat runs its own
    one-shot watcher, and the sweep must not start a twin. A babysit started by
    the sweep (`@<agent> babysit`) has no watcher: the sweep re-dispatches one
    round per new FIX verdict at the current head. Sweep-started sessions use
