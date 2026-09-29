@@ -37,6 +37,7 @@ Environment:
   PIPELINE_WIP            In progress limit (default 2)
   PIPELINE_TRACKS         tracks eligible for pickup (default: all four)
   PIPELINE_PARK_LABEL     label that parks a `discuss` reply (default pipeline:discuss)
+  PIPELINE_TRIAGE_BATCH   max items per triage session (default 8; oldest first)
   PIPELINE_TRIAGE_MODEL, PIPELINE_TRIAGE_SKILLS (backlog,triage-backlog)
   PIPELINE_WORK_MODEL, PIPELINE_WORK_SKILLS (backlog,work-item), PIPELINE_REASONING (medium)
   PIPELINE_SESSION_PROVIDER, PIPELINE_STALE_DAYS (hygiene, default 3)
@@ -74,6 +75,7 @@ WT_ROOT = pathlib.Path(ENV.get("PIPELINE_WORKTREE_ROOT", str(CHECKOUT) + "-workt
 WIP = int(ENV.get("PIPELINE_WIP", "2"))
 TRACKS = tuple(ENV.get("PIPELINE_TRACKS", "fast-path standard-implementation analysis-spike docs-process").split())
 PARK = ENV.get("PIPELINE_PARK_LABEL", "pipeline:discuss")
+TRIAGE_BATCH = int(ENV.get("PIPELINE_TRIAGE_BATCH", "8"))
 TRIAGE_MODEL = ENV.get("PIPELINE_TRIAGE_MODEL", "")
 TRIAGE_SKILLS = ENV.get("PIPELINE_TRIAGE_SKILLS", "backlog,triage-backlog")
 WORK_MODEL = ENV.get("PIPELINE_WORK_MODEL", "")
@@ -324,7 +326,7 @@ def job_triage(items, recs, reported):
     due = [i for i in items if i["status"] in ("Inbox", "Clarification needed") and needs_triage(i, comments_of(i["number"]))]
     if not due:
         return
-    nums = [i["number"] for i in due]
+    nums = sorted(i["number"] for i in due)[:TRIAGE_BATCH]
     rec = {"ts": time.time(), "kind": "triage", "items": nums}
     try:
         rec["pid"], rec["tag"] = spawn("triage", nums[0], "triage", {"items": " ".join(f"#{n}" for n in nums)})
