@@ -153,6 +153,19 @@ refute "$OUT" "would spawn work for #64" "pickup: a pickup that failed 3x is not
 check  "$OUT" "pickup failed 3x" "pickup: the repeated failure is reported"
 rm -rf "$TMP/state" "$TMP"/c*.json
 
+
+# --- shared account: the owner replies from the agent's login
+echo "[$(item 70 'Awaiting approval' Design standard-implementation)]" > "$TMP/items13.json"
+echo "[$GATE,{\"id\":101,\"user\":{\"login\":\"agent\"},\"body\":\"@agent approve\"}]" > "$TMP/c70.json"
+OUT="$(run work ITEMS="$TMP/items13.json" PIPELINE_OWNERS=agent)"
+refute "$OUT" "would spawn work for #70" "shared: without the flag a self-authored reply is ignored"
+OUT="$(run work ITEMS="$TMP/items13.json" PIPELINE_OWNERS=agent PIPELINE_SHARED_ACCOUNT=1)"
+check  "$OUT" "would spawn work for #70 (resume)" "shared: a marker-free reply from the shared login counts"
+echo "[$GATE,{\"id\":101,\"user\":{\"login\":\"agent\"},\"body\":\"@agent approve\n<!-- triage outcome=ready -->\"}]" > "$TMP/c70.json"
+OUT="$(run work ITEMS="$TMP/items13.json" PIPELINE_OWNERS=agent PIPELINE_SHARED_ACCOUNT=1)"
+refute "$OUT" "would spawn work for #70" "shared: a comment carrying an agent marker is never a reply"
+rm -f "$TMP"/c*.json
+
 # --- hygiene
 echo "[$(item 50 'Awaiting approval' Design),$(item 51 Blocked Execute)]" > "$TMP/items7.json"
 echo '[{"number":9,"labels":[],"isDraft":false},{"number":8,"labels":[{"name":"pr:ready-review"}],"isDraft":false}]' > "$TMP/prs.json"
