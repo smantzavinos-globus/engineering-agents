@@ -145,6 +145,25 @@ else
   fail "Worklog template missing"
 fi
 
+# Task review toggle: the plan decides per-task review; the orchestrator obeys it
+TPL="$REPO_ROOT/skills/create-plan/references/plan-template.md"
+ORCH="$REPO_ROOT/skills/execution-orchestrator/SKILL.md"
+if grep -q '^\*\*Task review default:\*\*' "$TPL" && [[ "$(grep -c '^\*\*Task review:\*\*' "$TPL")" -ge 2 ]]; then
+  pass "Plan template has a plan-level Task review default and a per-task Task review field"
+else
+  fail "Plan template missing 'Task review default' or per-task 'Task review' field"
+fi
+if grep -q 'Task review' "$ORCH" && grep -q 'review skipped per plan' "$ORCH" && ! grep -q 'optional but recommended' "$ORCH"; then
+  pass "Orchestrator obeys the plan's Task review fields"
+else
+  fail "Orchestrator does not read the plan's Task review fields"
+fi
+if grep -q 'Task review' "$REPO_ROOT/skills/review-plan/SKILL.md" && grep -q 'Task review' "$REPO_ROOT/skills/create-plan/SKILL.md"; then
+  pass "create-plan and review-plan both cover Task review"
+else
+  fail "create-plan or review-plan does not cover Task review"
+fi
+
 # ============================================================
 printf '\n'
 printf 'Results: %d passed, %d failed\n' "$PASS" "$FAIL"

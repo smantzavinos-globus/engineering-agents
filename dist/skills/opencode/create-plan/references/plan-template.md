@@ -4,6 +4,7 @@
 **Owner:** <name/agent>
 **Created:** YYYY-MM-DD
 **Related:** <links to brief, approach, findings>
+**Task review default:** <each | final-only — whether the orchestrator reviews every task's diff before advancing; a task's own `Task review` field overrides it>
 
 ---
 
@@ -100,6 +101,7 @@ Approved requirement changes to apply during execution:
 **Depends on:** —
 **Verification class:** <contract | characterization | check | none>
 **Execution tier:** <high | low — model mapping is repo config; see docs/references/agent-roles.md>
+**Task review:** <yes | no — omit to use the plan's `Task review default`; add a short reason when it differs from the default>
 **Touched files:** <paths/globs this task writes; `(none)` if none; omit only if unknown>
 **Deliverable:** <what exists when done>
 **Requirement refs:** <FR-001, NFR-001, OPR-001 | none | N/A>
@@ -122,6 +124,7 @@ Approved requirement changes to apply during execution:
 **Depends on:** T1
 **Verification class:** <contract | characterization | check | none>
 **Execution tier:** <high | low — model mapping is repo config; see docs/references/agent-roles.md>
+**Task review:** <yes | no — omit to use the plan's `Task review default`; add a short reason when it differs from the default>
 **Touched files:** <paths/globs this task writes; `(none)` if none; omit only if unknown>
 **Deliverable:** <what exists when done>
 **Requirement refs:** <FR-001, NFR-001, OPR-001 | none | N/A>

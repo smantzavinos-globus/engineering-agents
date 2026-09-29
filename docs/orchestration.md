@@ -287,12 +287,14 @@ while code_review_status != COMPLETE:
 Cap: 5 iterations
 ```
 
-**Per-task review loop (optional):**
+**Per-task review loop (per the plan's `Task review` fields):**
 ```
 for each task:
   call implementation sub-agent
   record any created backlog item IDs
-  call review sub-agent (this task's diff only)
+  if task review is yes (task field, else plan default, else each):
+    call review sub-agent (this task's diff only)
+  else record "review skipped per plan" (review anyway if fix/retry or files outside Touched files)
   if issues:
     call fix sub-agent
     Cap: 2 attempts per task
