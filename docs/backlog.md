@@ -62,12 +62,6 @@ _No items yet._
     - **AUDIT VERDICT (2026-07-13): RETIRE FORK.** Upstream `src/index.ts` has the same shutdown handler. **Decision (2026-09-23): remove GitNexus altogether** because it is unused. Remove its managed source, optional module switches, and CLI wiring; do not replace it with upstream.
   - Any fork we drop must keep the pinned-commit + idempotent-install contract (see `nix/AGENTS.md`) and update `tests/fixtures/proof-set.json`.
 
-### TASK-0005 — Onboard engineering-agents itself with a root pr-review-hooks.md manifest
-- Status: Done
-- Summary: The repo defines the PR review process (`docs/references/pr-review.md`) and its Required Repo Hooks table, but has no root `pr-review-hooks.md` manifest of its own — a reviewer of this repo's PRs proceeds on task-supplied facts instead of the fixed-shape manifest (found during the independent review of PR #18, 2026-09-28). Fix: run `assess-repo` against this repo and draft the manifest (review-inputs / review-rules / verification-commands / evidence-captures / pr-tracking / merge-gate), routing it from root `AGENTS.md`.
-- Source: Reviewer MINOR finding on PR #18 (review comment 5880478914); parent session onboarding run 2026-09-28.
-- Resolution (2026-09-29): manifest drafted at repo root (fixed-shape sections); verification rows copied from the repo's own canonical commands (`docs/testing-strategy.md`); devShell gained `python3` (fixes the 4 red fast-suite specs on `main`); root `AGENTS.md` routing line lands as a separate owner-present edit per the protected-file rule.
-
 ## Inbox
 
 ### TASK-0003 — Fix resource-snapshot.mjs Pi module path resolution through the startup wrapper
@@ -107,6 +101,12 @@ _No items yet._
 - Summary: Bump the held pi-guardrails managed package to 0.17.0, enable ask-mode outside-workspace path access, allow normal pushes while auto-denying force pushes, and document repository-local Guardrails configuration in `configure-pi`.
 - Source: Package-update review session (commits 822f83d..80a8d19) and follow-up configuration discussion; changelog https://github.com/aliou/pi-guardrails/releases
 - Notes: v0.12.0 split Guardrails into four manifest extensions (policy / path-access / permission-gate / Herdr) and renamed public events; v0.14.0 migrated `pathAccess.allowedPaths` to `{ kind, path }[]`. The Nix compiler auto-discovers the latest manifest entries. The repo config uses `pathAccess.mode: ask`; ordinary `git push` is not configured as a gate, while `--force`, `-f`, `--force-with-lease`, and `+refspec` force-push forms are auto-denied. `./tests/run-tests.sh fast`, `./tests/run-tests.sh all`, and `./scripts/pi-dev.sh --verify` pass. `skills/configure-pi/SKILL.md` documents `.pi/extensions/guardrails.json`.
+
+### TASK-0005 — Onboard engineering-agents itself with a root pr-review-hooks.md manifest
+- Status: Done
+- Summary: The repo defines the PR review process (`docs/references/pr-review.md`) and its Required Repo Hooks table, but has no root `pr-review-hooks.md` manifest of its own — a reviewer of this repo's PRs proceeds on task-supplied facts instead of the fixed-shape manifest (found during the independent review of PR #18, 2026-09-28). Fix: run `assess-repo` against this repo and draft the manifest (review-inputs / review-rules / verification-commands / evidence-captures / pr-tracking / merge-gate), routing it from root `AGENTS.md`.
+- Source: Reviewer MINOR finding on PR #18 (review comment 5880478914); parent session onboarding run 2026-09-28.
+- Resolution (2026-09-29): manifest drafted at repo root (fixed-shape sections); verification rows copied from the repo's own canonical commands (`docs/testing-strategy.md`); devShell gained `python3` (fixes the 4 red fast-suite specs on `main`); root `AGENTS.md` routing line added (owner-approved in-session).
 
 ## Canceled
 
