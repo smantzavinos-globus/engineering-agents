@@ -44,7 +44,7 @@ for mode in discovery design execute; do
 done
 
 # Verify agent definition files exist (agents are separate .md files)
-for agent in planner plan-reviewer code-reviewer worker ui-worker researcher vision oracle; do
+for agent in planner plan-reviewer code-reviewer worker worker-high worker-low ui-worker researcher vision oracle; do
   if [[ -f "$REPO_ROOT/agents/${agent}.md" ]]; then
     pass "Agent '${agent}' definition file exists"
   else

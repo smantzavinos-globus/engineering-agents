@@ -61,9 +61,9 @@ Agent overrides live in `.pi/settings.json` at the project root under `subagents
 
 Project overrides (`.pi/settings.json`) beat user overrides (`~/.pi/agent/settings.json`).
 
-Override fields replace the agent file's frontmatter values (pi-subagents >=0.73; earlier releases skipped frontmatter-declared fields).
+Override fields replace the agent file's frontmatter values.
 
-`fallbackModels` was removed in pi-subagents 0.68: an agent file or override that still sets it fails to load. Configure one model per agent.
+`fallbackModels` is unsupported: an agent file or override that sets it fails to load. Configure one model per agent.
 
 ## Standard Agent Set
 
@@ -72,7 +72,9 @@ Override fields replace the agent file's frontmatter values (pi-subagents >=0.73
 | `planner` | Create detailed implementation plans | Frontier (reasoning) | Different frontier model preferred |
 | `plan-reviewer` | Review plans + approaches | Frontier (reasoning) | Different review model preferred |
 | `code-reviewer` | Review code diffs against plan | Frontier (code) | Code-specialized model preferred |
-| `worker` | Backend/logic implementation | Execution | Language-specialized or cheaper model needed |
+| `worker-high` | High-tier task implementation (Implementer, high) | Execution (high) | Set to the repo's high-tier model |
+| `worker-low` | Low-tier task implementation (Implementer, low) | Execution (low) | Set to the repo's low-tier (cheaper) model |
+| `worker` | Worklog, codebase research, general fixes | Execution | Language-specialized or cheaper model needed |
 | `ui-worker` | Frontend/UI implementation | Execution (UI) | Different UI-strong model needed |
 | `researcher` | Web/docs research | Execution | Rarely needs override |
 | `vision` | Visual analysis | Visual | Rarely needs override |

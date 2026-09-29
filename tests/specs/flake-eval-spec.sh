@@ -317,7 +317,7 @@ if [[ -n "$PI_OUT" && -d "$PI_OUT" ]]; then
   fi
 
   # Verify agents are linked
-  for agent in planner plan-reviewer code-reviewer worker ui-worker researcher vision oracle; do
+  for agent in planner plan-reviewer code-reviewer worker worker-high worker-low ui-worker researcher vision oracle; do
     if [[ -f "$PI_FILES/.pi/agent/agents/$agent.md" ]]; then
       pass "Pi module links agent: $agent"
     else

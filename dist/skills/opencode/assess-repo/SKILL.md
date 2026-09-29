@@ -81,13 +81,13 @@ For documents that exist, evaluate:
 - **AGENTS.md:** Does it route to deeper docs, or dump everything in one file?
 - **Architecture:** Does it describe boundaries and relationships, or just list technologies?
 - **Per-directory AGENTS.md:** Do they include patterns AND anti-patterns, or just brief descriptions?
-- **Agent config:** Do model choices match the repo's domain? (Frontend repo should have UI-strong workers) Do critical agents state a manual fallback order for the providers this repo uses (automatic `fallbackModels` chains no longer exist — pi-subagents 0.68 removed them), and do the override fields actually apply (settings-level `subagents.agentOverrides` fields replace agent-file frontmatter — pi-subagents >=0.73; see the agent configuration guide)?
+- **Agent config:** Do model choices match the repo's domain? (Frontend repo should have UI-strong workers) Is there a distinct agent per implementer tier (`worker-high`, `worker-low`) so tier routing needs no per-dispatch model? Do override model IDs exist in the provider catalog of the deployments that run this repo? Do critical agents state a manual fallback order for the providers this repo uses (`fallbackModels` is unsupported)? Settings-level `subagents.agentOverrides` replace agent-file values; see the agent configuration guide.
 - **Operational hooks:** For each task-tracking and requirements hook, is the implementation agent-executable? A good hook names the exact file/command, ID rule, required fields, safe read operations, mutating operations, approval boundary, and fallback. A vague concept is not enough.
 - **Task tracking:** Does the repo define every required task-tracking hook from `../../references/task-tracking.md`: backlog store, create item, stable ID, reference format, source backlink format, list inbox/untriaged, list `Up next`, mark ready/done/canceled/deferred/blocked, and critical/blocking policy? Is `Up next` human-controlled or explicitly delegated? Are agents allowed to create items directly or must they ask?
 - **Requirements posture:** Is the repo's requirements posture explicit? Report one of: maintains requirements, explicitly no separate requirements system, unclear, or likely needed but missing.
 - **Requirements:** If the repo maintains requirements, does it define every required requirements hook from `../../references/requirements.md`: requirements store, actor/persona definitions, use case definitions, workflow/scenario definitions, functional requirements, non-functional requirements, operational requirements, stable IDs, reference format, test citation format, traceability rules, apply approved requirement changes, retire/change requirements, validation/query commands if any, and approval policy? Are mutating operations and human approval boundaries clear?
 - **PR review process:** Does the repo have a `pr-review-hooks.md` manifest at its root answering the required hooks from `../../references/pr-review.md`: review inputs, local review rules, verification commands, evidence captures, PR tracking, and merge gate? Are the verification rows runnable commands and is the merge gate explicit?
-- **Agent role → model assignment:** Does the repo define which model fills each agent role from `../../references/agent-roles.md` (orchestrator, researcher, planner/contract author, reviewer, fresh reviewer, implementer high/low, optional visual implementer)? Check: every role has a named model or an explicit "default" record; the implementer tier mapping (high/low models) is stated; a manual fallback order is stated for implementers/planner/reviewer (no automatic `fallbackModels` chains — pi-subagents 0.68 removed them); the mapping lives in the repo's agent-configuration surface and is auditable. A repo that cannot state its role→model mapping fails assessment.
+- **Agent role → model assignment:** Does the repo define which model fills each agent role from `../../references/agent-roles.md` (orchestrator, researcher, planner/contract author, reviewer, fresh reviewer, implementer high/low, optional visual implementer)? Check: every role has a named model or an explicit "default" record; the implementer tier mapping is stated as `worker-high` / `worker-low` overrides; a manual fallback order is stated for implementers/planner/reviewer (not `fallbackModels`, which is unsupported); the mapping lives in the repo's agent-configuration surface and is auditable. A repo that cannot state its role→model mapping fails assessment.
 - **Tool availability:** For GitHub Projects, CLIs, or other external systems, are required tools installed/authenticated and are fallback procedures documented when access is unavailable?
 
 ### 4. Report or Act
@@ -96,7 +96,7 @@ For documents that exist, evaluate:
 
 **If setting up:** Create the missing files:
 - `.pi/settings.json` with `subagents.agentOverrides` appropriate to the repo's stack
-- A role→model assignment covering every role in `../../references/agent-roles.md` (roles, tiers, fallbacks) in the repo's agent-configuration surface
+- A role→model assignment covering every role in `../../references/agent-roles.md` (roles, tiers, manual fallback order) in the repo's agent-configuration surface
 - `plans/` directory (or `docs/engineering/plans/`)
 - Test architecture skeleton populated from discovered commands (package.json, Makefile, etc.)
 - Task-tracking skeleton if missing. Ensure the skeleton maps every required task-tracking hook with an operations table, item template, source backlink rule, and lifecycle transitions. Offer the user:
@@ -358,7 +358,7 @@ When setting up or updating agent models for a repo, use `.pi/settings.json` →
 
 Only override agents where the model should differ from the global default.
 
-Precedence: Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values (pi-subagents >=0.73; earlier releases skipped frontmatter-declared fields). Project overrides beat user overrides. Do not set `fallbackModels`: pi-subagents 0.68 removed it, and an agent or override that still declares it fails to load.
+Precedence: Settings-level `subagents.agentOverrides` fields replace the agent file's frontmatter values. Project overrides beat user overrides. Do not set `fallbackModels`: it is unsupported, and an agent or override that declares it fails to load.
 
 Ask the user about:
 - Preferred providers (cost constraints, API access)

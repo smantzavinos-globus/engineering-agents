@@ -87,7 +87,7 @@ for skill in "${SKILLS[@]}"; do
 done
 
 # Agents (8 + preset)
-AGENTS=(planner plan-reviewer code-reviewer worker ui-worker researcher vision oracle)
+AGENTS=(planner plan-reviewer code-reviewer worker worker-high worker-low ui-worker researcher vision oracle)
 for agent in "${AGENTS[@]}"; do
   assert_file_exists "$REPO_ROOT/agents/${agent}.md" "Agent: ${agent}.md exists"
   assert_agent_frontmatter "$REPO_ROOT/agents/${agent}.md" "Agent: ${agent} has valid frontmatter"

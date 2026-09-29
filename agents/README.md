@@ -24,7 +24,9 @@ Sub-agents are called by the presets to do the actual work. Placed at `~/.pi/age
 | `planner` | Frontier (reasoning) | Create detailed plans from brief + approach |
 | `plan-reviewer` | Frontier (reasoning) | Review approaches, epic decompositions, and plans for logic, completeness, consistency |
 | `code-reviewer` | Frontier (code) | Review code diffs against plan requirements |
-| `worker` | Execution | Backend/logic implementation, worklog, research, fixes |
+| `worker-high` | Execution (high tier) | Plan tasks with `Execution tier: high` (non-UI) |
+| `worker-low` | Execution (low tier) | Plan tasks with `Execution tier: low` (mechanical, non-UI) |
+| `worker` | Execution | Worklog creation, codebase research, general fixes |
 | `ui-worker` | Execution (UI) | Frontend/UI implementation |
 | `researcher` | Execution | Web/external documentation research |
 | `vision` | Visual | Screenshot/mockup/visual analysis |
@@ -39,7 +41,9 @@ Sub-agents are called by the presets to do the actual work. Placed at `~/.pi/age
 - `planner.md` — Plan creation (Frontier reasoning)
 - `plan-reviewer.md` — Plan quality review (Frontier reasoning)
 - `code-reviewer.md` — Code quality review (Frontier code)
-- `worker.md` — Backend/logic implementation (Execution)
+- `worker-high.md` — High-tier task implementation
+- `worker-low.md` — Low-tier task implementation
+- `worker.md` — Worklog, research, general fixes (Execution)
 - `ui-worker.md` — Frontend/UI implementation (Execution UI)
 - `researcher.md` — Web/external research (Execution)
 - `vision.md` — Visual analysis (Visual/multimodal)
