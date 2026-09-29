@@ -21,6 +21,8 @@ Environment:
   PIPELINE_CHECKOUT       local checkout of that repo (required; tracker commands run here)
   PIPELINE_LIST_CMD       prints the backlog as a JSON array (required), each item:
                           {"number", "title", "status", "stage", "track", "priority", "autonomy", "updatedAt"}
+                          plus "state" (OPEN/CLOSED): closed items still In review are included so the
+                          work tick can complete T17 (merged PR closed the issue -> Done)
   PIPELINE_MOVE_CMD       moves an item (required); tokens {number} {status}; `--comment <text>` is
                           appended when a comment is required. Example:
                           "node scripts/backlog.mjs move {number} {status}"
@@ -470,7 +472,13 @@ def job_work(items, recs, reported):
         slots -= 1
         guarded(n, lambda i=i: dispatch_work(recs, i, "start"))
 
-    # 4. Worktree cleanup for finished items (never forced: a dirty tree is reported, not deleted).
+    # 4. T17: a merged PR closed the issue (Closes #N) but the tracker still says In review.
+    for i in items:
+        if i["status"] == "In review" and i.get("state") == "CLOSED":
+            guarded(i["number"], lambda i=i: move(i["number"], "Done", "Closed by its merged PR."))
+            i["status"] = "Done"
+
+    # 5. Worktree cleanup for finished items (never forced: a dirty tree is reported, not deleted).
     for i in items:
         path = WT_ROOT / f"item-{i['number']}"
         if i["status"] in ("Done", "Canceled") and path.exists() and i["number"] not in running:
