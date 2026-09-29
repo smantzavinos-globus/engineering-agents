@@ -40,6 +40,18 @@ assert_contains "$HERMES_AUTO" "Never half-post" "PR automation doc defines the 
 assert_contains "$HERMES_AUTO" "Agents never merge" "PR automation doc states the merge boundary"
 assert_contains "$HERMES_AUTO" "docs/references/pr-review.md" "PR automation doc points at the canonical process, not a restatement"
 
+PIPELINE="$REPO_ROOT/docs/references/delivery-pipeline.md"
+assert_contains "$PIPELINE" "Awaiting approval" "Delivery pipeline defines the Awaiting approval gate state"
+assert_contains "$PIPELINE" "Design gate" "Delivery pipeline combines brief and approach into one design gate"
+assert_contains "$PIPELINE" "Cap: 5 bot-review rounds" "Delivery pipeline caps bot-review rounds at 5"
+assert_contains "$PIPELINE" "Babysit starts when the PR opens" "Delivery pipeline starts babysitting when the PR opens"
+assert_contains "$PIPELINE" "Start at **2**" "Delivery pipeline sets the initial WIP limit"
+assert_contains "$PIPELINE" "Up next\` stays human-controlled" "Delivery pipeline keeps Up next human-controlled"
+assert_contains "$PIPELINE" "Agents still ask before creating items" "Delivery pipeline keeps the ask-before-capture rule"
+assert_contains "$PIPELINE" "hermes/pr-automation.md" "Delivery pipeline defers the PR label machine to PR automation"
+assert_contains "$HERMES_README" "../references/delivery-pipeline.md" "Hermes ops index routes to the delivery pipeline"
+assert_contains "$REPO_ROOT/docs/references/task-tracking.md" "delivery-pipeline.md" "Task tracking routes to the delivery pipeline"
+
 HERMES_MODES="$REPO_ROOT/docs/hermes/execution-modes.md"
 assert_contains "$HERMES_MODES" "Investigation continuity is the second exception" "Execution modes define the investigation-continuity session exception"
 assert_contains "$HERMES_MODES" "continuity: <reason>" "Investigation continuity is recorded in the worklog"

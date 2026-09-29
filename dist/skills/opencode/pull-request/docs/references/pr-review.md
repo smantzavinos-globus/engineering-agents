@@ -212,3 +212,7 @@ How this process is driven automatically — polling open PRs, dispatching
 separately and is
 deliberately not part of this doc. The manual process above is the contract;
 automation is an accelerator on top of it.
+
+Where the PR sits in the item's lifecycle (opening the PR starts babysitting;
+bot-review rounds are capped) is defined in the engineering-agents
+`docs/references/delivery-pipeline.md` (§4 PR lifecycle).

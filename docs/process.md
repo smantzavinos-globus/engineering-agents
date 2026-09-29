@@ -19,7 +19,7 @@ Every agent-created backlog item must have a stable ID and a source backlink. Th
 
 By default, non-critical agent-discovered follow-ups should be proposed for capture as `Inbox` items with `origin: plan-follow-up`. If a discovery may affect current-plan correctness, safety, or verification, the agent must stop and ask whether to fix, re-plan, or backlog it.
 
-Backlog items are intake records, not implementation plans. When a backlog item is selected for work, it becomes input to the normal process: Discovery creates or updates `brief.md`, Design creates `approach.md`, and Execution creates the plan artifacts for the selected pipeline. Moving an item to `Up next` means it is approved to start that process, not that it already contains an implementation plan.
+Backlog items are intake records, not implementation plans. When a backlog item is selected for work, it becomes input to the normal process: Discovery creates or updates `brief.md`, Design creates `approach.md`, and Execution creates the plan artifacts for the selected pipeline. Moving an item to `Up next` means it is approved to start that process, not that it already contains an implementation plan. The end-to-end state machine from `Inbox` to a merge-ready PR, including human gates and scheduled jobs, is [Delivery Pipeline](./references/delivery-pipeline.md).
 
 ---
 

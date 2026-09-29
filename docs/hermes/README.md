@@ -20,6 +20,7 @@ If this section and a canonical doc disagree, the canonical doc wins.
 | [Software development process](dev-process.md) | Setting up an agent to run the development pipeline on owned repos (skill sync, stop boundaries) |
 | [Execution modes](execution-modes.md) | Deciding HOW Hermes drives the pipeline: Pi subprocesses vs Hermes subagents vs single session |
 | [PR automation](pr-automation.md) | Setting up an agent to detect and review PRs automatically (no-agent cron sweep, labels, triggers, detached review sessions) |
+| [Delivery pipeline](../references/delivery-pipeline.md) | Wiring triage, work dispatch and gate replies around the PR sweep (item state machine, WIP limit, human gates) |
 
 ## How Hermes consumes this repo
 

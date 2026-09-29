@@ -70,6 +70,7 @@ assert_dir_exists "$REPO_ROOT/docs/references" "docs/references/ exists"
 assert_file_exists "$REPO_ROOT/docs/references/requirements.md" "references/requirements.md exists"
 assert_file_exists "$REPO_ROOT/docs/references/standard-test-levels.md" "references/standard-test-levels.md exists"
 assert_file_exists "$REPO_ROOT/docs/references/task-tracking.md" "references/task-tracking.md exists"
+assert_file_exists "$REPO_ROOT/docs/references/delivery-pipeline.md" "references/delivery-pipeline.md exists"
 
 # Skills (19 total)
 SKILLS=(

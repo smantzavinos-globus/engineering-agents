@@ -101,12 +101,15 @@ Repos do not have to store these as literal fields, but they should map their tr
 | `Up next` | Human-approved queue; eligible for agent execution |
 | `In progress` | Actively being worked |
 | `In review` | Implementation is ready for human or final review |
+| `Awaiting approval` | An agent reached a human gate (design, plan, findings) and is waiting on a reply; see [Delivery Pipeline](delivery-pipeline.md#3-gate-protocol) |
 | `Blocked` | Cannot proceed without external input, dependency, or decision |
 | `Done` | Completed |
 | `Canceled` | Explicitly closed without implementation |
 | `Icebox` | Intentionally captured but not active for agent processing |
 
 `Up next` should usually be human-controlled. Agents may recommend readiness, but should not start arbitrary backlog work without approval.
+
+How items move between these states, and which transitions a human, an agent, or a scheduled job makes, is defined in [Delivery Pipeline](delivery-pipeline.md).
 
 ### Kind / type
 
@@ -545,7 +548,9 @@ This repo uses GitHub Issues as canonical backlog items and the `<Project Name>`
 
 | Field | Purpose |
 |-------|---------|
-| `Status` | Workflow state: Inbox, Ready, Up next, In progress, In review, Blocked, Done, Canceled, Icebox |
+| `Status` | Workflow state: Inbox, Clarification needed, Ready, Up next, In progress, Awaiting approval, In review, Blocked, Done, Canceled, Icebox |
+| `Stage` | Optional; Design, Plan, Execute, PR (see [Delivery Pipeline](delivery-pipeline.md#item-fields)) |
+| `Autonomy` | Optional; `gated` (default) or `auto` (skips the plan gate) |
 | `Track` | Process depth: Fast path, Standard implementation, Analysis / spike, Docs / process |
 | `Priority` | P0–P3 |
 | `Area` | Optional; use only if useful for project views |
