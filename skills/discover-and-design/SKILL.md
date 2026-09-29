@@ -30,6 +30,32 @@ targeted questions.
   that is a real design fork, not a documentation detail; say so and redirect
   to `/design`
 
+## Unattended mode
+
+When a dispatcher runs you through `work-item` (no human in the session), the
+backlog item and its comments stand in for the conversation. Follow the same
+process with these changes:
+
+- The premise changes: there was no prior discussion, so the item is the
+  whole input. "When to use / when to stop" does not apply; do not redirect.
+- Wherever this skill says *ask* (steps 1, 3 and 4) or *wait* (step 6), choose
+  the best-supported default and record it in the brief as a numbered
+  **assumption** or a numbered **open question with your recommended answer**.
+  Do not stop to ask.
+- The plan directory is the one `work-item` names; never ask for a path.
+- Step 5's approach review always runs (no human is present to waive it).
+- If verification or the review exposes a real design fork, do not redirect:
+  write the options into the approach, recommend one, and make the choice the
+  first gate question.
+- If the work is epic-sized, say so as the first gate question and recommend
+  splitting the item; do not decompose it unattended.
+- A `revise:` reply from an earlier Design gate is authoritative: apply every
+  answer, and do not re-ask what it settled.
+- If the item is too vague to draft responsibly, still write the brief with
+  what is known, and make the first gate question whether to `discuss` it live.
+- Step 6 becomes: commit the artifacts, then post the **Design** gate per the
+  `backlog` skill. The gate is the human accept step; do not wait in-session.
+
 ## Process
 
 1. **Mine the conversation, don't restart it.** Extract from the discussion:
@@ -101,4 +127,4 @@ Review the approach at [plan directory path]/approach.md for architectural sound
 - Do not write `plan.md` or `tasks.json`.
 - Do not reopen settled decisions unless verification shows one is wrong — and
   then say so explicitly.
-- Do not skip the human accept-and-commit gate.
+- Do not skip the human accept-and-commit gate (in unattended mode, the Design gate is that step).

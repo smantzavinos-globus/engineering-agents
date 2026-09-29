@@ -72,7 +72,7 @@ assert_file_exists "$REPO_ROOT/docs/references/standard-test-levels.md" "referen
 assert_file_exists "$REPO_ROOT/docs/references/task-tracking.md" "references/task-tracking.md exists"
 assert_file_exists "$REPO_ROOT/docs/references/delivery-pipeline.md" "references/delivery-pipeline.md exists"
 
-# Skills (19 total)
+# Skills (22 total)
 SKILLS=(
   discovery design research
   create-plan review-plan
@@ -80,6 +80,7 @@ SKILLS=(
   execute-task execution-orchestrator
   review-code review-approach review-epic
   assess-repo create-skills pull-request
+  backlog triage-backlog work-item
   configure-opencode
 )
 for skill in "${SKILLS[@]}"; do

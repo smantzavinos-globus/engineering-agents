@@ -53,7 +53,11 @@ verdict and `reviewed@<sha>` stamp come only from an independent Reviewer run
 5. **Read the loop count.** Count prior `FIX` verdicts on the PR. The
    two-fix-loop bound from the PR review process applies to the PR as a
    whole, not to this session. If the PR is already at the bound, escalate
-   instead of starting.
+   instead of starting. Also count completed bot-review rounds: the number of
+   submitted reviews by the bot account (e.g.
+   `copilot-pull-request-reviewer[bot]`) on the PR. The delivery pipeline caps
+   them at **5 per PR**; GitHub's review list is the counter, so every session
+   and the sweep see the same number.
 
 ## Arm a one-shot session watcher
 
@@ -124,7 +128,9 @@ notification can re-enter.
    non-idempotent reply/review request, query existing replies/events to
    prevent duplicates. Read back exact reply IDs/bodies and confirm the
    review request was registered; POST success alone is insufficient.
-   Request another reviewer pass once per new head after fixes. If a review
+   Request another reviewer pass once per new head after fixes, until the PR
+   reaches the bot-review cap; at the cap, stop requesting and list the
+   remaining bot findings in a PR comment for the independent reviewer. If a review
    arrives meanwhile, read it before requesting again.
 5. Re-arm the one-shot watcher using the latest **processed** review ID, not
    latest head, while monitoring is requested. Refresh the claim heartbeat.

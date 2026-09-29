@@ -24,5 +24,35 @@
       "source": "docs/references/pr-review.md",
       "target": "docs/references/pr-review.md"
     }
+  ],
+  "backlog": [
+    {
+      "source": "docs/references/task-tracking.md",
+      "target": "docs/references/task-tracking.md"
+    },
+    {
+      "source": "docs/references/delivery-pipeline.md",
+      "target": "docs/references/delivery-pipeline.md"
+    }
+  ],
+  "triage-backlog": [
+    {
+      "source": "docs/references/task-tracking.md",
+      "target": "docs/references/task-tracking.md"
+    },
+    {
+      "source": "docs/references/delivery-pipeline.md",
+      "target": "docs/references/delivery-pipeline.md"
+    }
+  ],
+  "work-item": [
+    {
+      "source": "docs/references/task-tracking.md",
+      "target": "docs/references/task-tracking.md"
+    },
+    {
+      "source": "docs/references/delivery-pipeline.md",
+      "target": "docs/references/delivery-pipeline.md"
+    }
   ]
 }
