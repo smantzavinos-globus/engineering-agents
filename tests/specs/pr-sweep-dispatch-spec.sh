@@ -44,9 +44,30 @@ BOT="$TMP/gh-bot"
 cat > "$BOT" <<'EOF'
 #!/usr/bin/env bash
 old='{"number":7,"title":"owned","headRefName":"item/7","headRefOid":"7777777777777777777777777777777777777777","labels":[{"name":"pr:babysat"},{"name":"pr:in-review"}],"isDraft":false}'
+# PR 8: READY stamped at its head; rollup controlled by CI_ROLLUP (red|green|pending|none)
+mk8() {
+  case "${CI_ROLLUP:-red}" in
+    red)     R='[{"name":"E2E","status":"COMPLETED","conclusion":"FAILURE"},{"name":"CI","status":"COMPLETED","conclusion":"SUCCESS"}]';;
+    green)   R='[{"name":"CI","status":"COMPLETED","conclusion":"SUCCESS"}]';;
+    pending) R='[{"name":"CI","status":"IN_PROGRESS","conclusion":null}]';;
+    none)    R='[]';;
+  esac
+  if [ "${PR8_LABEL:-pr:ready-merge}" = "pr:babysat" ]; then
+    L='[{"name":"pr:babysat"},{"name":"pr:in-review"}]'
+  else
+    L="[{\"name\":\"${PR8_LABEL:-pr:ready-merge}\"}]"
+  fi
+  printf '{"number":8,"title":"ready+ci","headRefName":"item/8","headRefOid":"8888888888888888888888888888888888888888","labels":%s,"isDraft":false,"statusCheckRollup":%s}' "$L" "$R"
+}
 case "$*" in
-  "pr list"*) echo "[$old]" ;;
+  "pr list"*) echo "[$old, $(mk8)]" ;;
   *"issues/7/comments"*) echo '[{"id":70,"user":{"login":"agent"},"body":"babysit: session=babysit-pr-item7-x heartbeat=2000-01-01T00:00:00Z"}]' ;;
+  *"issues/8/comments"*)
+    C='[{"id":80,"user":{"login":"agent"},"body":"<!-- pr-review verdict=READY head=8888888888888888888888888888888888888888 -->"}'
+    if [ "${PR8_LABEL:-}" = "pr:babysat" ]; then
+      C="$C,{\"id\":81,\"user\":{\"login\":\"agent\"},\"body\":\"babysit: session=babysit-pr-item8-x heartbeat=2000-01-01T00:00:00Z\"}"
+    fi
+    echo "$C]" ;;
   *"pulls/7/reviews"*)
     n="${BOT_REVIEWS:-1}"; printf '['
     for i in $(seq 1 "$n"); do [[ $i -gt 1 ]] && printf ','; printf '{"id":%d,"user":{"login":"copilot-pull-request-reviewer[bot]"},"state":"COMMENTED","submitted_at":"2026-01-01T00:00:00Z"}' "$((700+i))"; done
@@ -73,6 +94,25 @@ refute "$OUT" "would spawn babysit for o/r#7" "bot-review batching: a record car
 printf '%s\n' '{"ts":0,"kind":"babysit","repo":"o/r","pr":7,"head":"7777777777777777777777777777777777777777","bot_review_id":701}' > "$TMP/state/dispatches.jsonl"
 OUT="$(run BOT_REVIEWS=2 GH_BIN="$BOT")"
 check  "$OUT" "would spawn babysit for o/r#7" "bot-review batching: a pre-fix single-id record still gets the round for the second review"
+
+# CI gate: red at the stamped READY head demotes; green restores; pending/none are not red.
+OUT="$(run GH_BIN="$BOT")"
+refute "$OUT" "would spawn babysit for o/r#8" "CI gate: red at READY head demotes, no round while demoted"
+check  "$OUT" "CI red at the READY head (E2E (FAILURE)); moved back to pr:re-review" "CI gate: demotion is reported once"
+OUT="$(run PR8_LABEL=pr:in-review GH_BIN="$BOT")"
+check  "$OUT" "CI red (E2E (FAILURE)); the babysitting author owns the fix." "CI gate: red under review reports ownership"
+OUT="$(run PR8_LABEL=pr:re-review CI_ROLLUP=green GH_BIN="$BOT")"
+check  "$OUT" "CI green at the READY head; restored pr:ready-merge" "CI gate: green restores pr:ready-merge"
+OUT="$(run CI_ROLLUP=green GH_BIN="$BOT")"
+refute "$OUT" "restored pr:ready-merge" "CI gate: green at pr:ready-merge is silent"
+OUT="$(run CI_ROLLUP=pending GH_BIN="$BOT")"
+refute "$OUT" "CI red" "CI gate: pending checks are ignored"
+OUT="$(run CI_ROLLUP=none GH_BIN="$BOT")"
+refute "$OUT" "CI red" "CI gate: no checks yet is not a red"
+
+# A sweep-owned babysitter takes the CI round when one is due.
+OUT="$(run PR8_LABEL=pr:babysat CI_ROLLUP=red GH_BIN="$BOT")"
+check  "$OUT" "would spawn babysit for o/r#8" "CI gate: sweep-owned claim gets a CI-fix round"
 
 printf '\nResults: %d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

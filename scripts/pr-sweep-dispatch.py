@@ -139,6 +139,25 @@ def bot_round_due(bot_revs, handled_ids, cap=BOT_CAP):
     return pending[-1], False, [r["id"] for r in pending]
 
 
+def ci_round_due(rollup, handled_keys, stamp_head, head):
+    """(fires, key, ok): CI conclusions at the stamped READY head.
+
+    key identifies (head, conclusion-set); None when out of scope — no READY
+    verdict, or the head moved past the stamp (push demotion owns that). fires
+    is non-empty only when key is new AND some completed check failed. ok is
+    overall health, used to restore a CI demotion once green."""
+    if not stamp_head or not head.startswith(stamp_head):
+        return [], None, True
+    bad = sorted(f"{c.get('name')} ({c.get('conclusion')})" for c in (rollup or [])
+                 if c.get("status") == "COMPLETED" and c.get("conclusion") != "SUCCESS")
+    key = f"{head[:12]}:" + (",".join(bad) if bad else "green")
+    if key in handled_keys:
+        return [], None, not bad
+    if bad:
+        return bad, key, False
+    return [], key, True
+
+
 def mentions(comments, handles, seen_ids):
     """Newest unprocessed (review_comment, babysit_comment) across the handle vocabulary.
 
@@ -239,7 +258,7 @@ def record(recs, rec):
 
 def sweep_repo(repo, recs, reported):
     pulls = gh("pr", "list", "-R", repo, "--state", "open", "--limit", "100",
-               "--json", "number,title,headRefName,headRefOid,labels,isDraft")
+               "--json", "number,title,headRefName,headRefOid,labels,isDraft,statusCheckRollup")
     for pr in sorted(pulls, key=lambda p: p["number"]):
         n, head = pr["number"], pr["headRefOid"]
         labels = [l["name"] for l in pr["labels"]]
@@ -265,6 +284,27 @@ def sweep_repo(repo, recs, reported):
             label = "pr:re-review"
             if last_v[0] == "READY":
                 out.append(f"{repo}#{n}: new commits after READY at {last_v[1][:8]}; moved back to pr:re-review.")
+
+        # CI gate (merge contract): required checks red at the stamped READY head
+        # invalidate mergeable advice; the babysitting author owns the fix; green
+        # restores. A CI fix round is maintenance, not a verdict response.
+        ci_fires, ci_key, ci_ok = ci_round_due(pr.get("statusCheckRollup"),
+                                               {r.get("ci_key") for r in mine if r["kind"] == "babysit"},
+                                               last_v[1] if last_v else None, head)
+        if ci_fires:
+            if label == "pr:ready-merge":
+                set_state_label(repo, n, "pr:re-review")
+                label = "pr:re-review"
+                out.append(f"{repo}#{n}: CI red at the READY head ({'; '.join(ci_fires)}); moved back to pr:re-review until green.")
+            elif label in ("pr:in-review", "pr:re-review"):
+                rkey = f"ci:{repo}#{n}:{ci_key}"
+                if rkey not in reported:
+                    reported.add(rkey)
+                    out.append(f"{repo}#{n}: CI red ({'; '.join(ci_fires)}); the babysitting author owns the fix.")
+        elif ci_ok and ci_key and label == "pr:re-review" and last_v and last_v[0] == "READY":
+            set_state_label(repo, n, "pr:ready-merge")
+            label = "pr:ready-merge"
+            out.append(f"{repo}#{n}: CI green at the READY head; restored pr:ready-merge.")
 
         mention_review, mention_babysit = mentions(comments, HANDLES, {r.get("comment_id") for r in mine})
 
@@ -320,18 +360,20 @@ def sweep_repo(repo, recs, reported):
                 out.append(f"{repo}#{n}: bot-review cap ({BOT_CAP}) reached; no more bot rounds.")
         fix_round = owned and fix_at_head and not round_done
         bot_round = owned and bot_rev is not None and not fix_round
-        want_babysit = (bool(mention_babysit) and claim == "none") or fix_round or bot_round
+        ci_round = owned and bool(ci_fires)
+        want_babysit = (bool(mention_babysit) and claim == "none") or fix_round or bot_round or ci_round
         if want_babysit and not babysitter_running:
             rec = {"ts": time.time(), "kind": "babysit", "repo": repo, "pr": n, "head": head,
                    "comment_id": mention_babysit["id"] if mention_babysit else None,
                    "verdict_id": verdict_id if fix_round or mention_babysit else None,
                    "bot_review_id": bot_rev["id"] if bot_round else None,
-                   "bot_review_ids": bot_seen if bot_round else []}
+                   "bot_review_ids": bot_seen if bot_round else [],
+                   "ci_key": ci_key if ci_round else None}
             try:
                 rec["pid"], rec["tag"] = spawn("babysit", repo, pr, head, BABYSIT_MODEL, "medium", BABYSIT_SKILLS,
                                                {"fix_loops": sum(1 for v in vs if v[0] == "FIX"),
                                                 "bot_rounds": len(bot_reviews(reviews)), "bot_cap": BOT_CAP,
-                                                "trigger": "bot review" if bot_round else "verdict"})
+                                                "trigger": "CI red" if ci_round else ("bot review" if bot_round else "verdict")})
             except Exception as e:  # noqa: BLE001
                 rec["error"] = str(e)[:300]
             record(recs, rec)

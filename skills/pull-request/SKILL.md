@@ -52,7 +52,9 @@ role procedure; never restate the contract from memory.
    The `babysit-pr` prefix makes it sweep-owned, so the PR sweep runs fix
    rounds on FIX verdicts and bot reviews without a watcher (see the delivery
    pipeline's dispatch contract). The PR is not handed off until it is labeled
-   for review, linked, and claimed.
+   for review, linked, and claimed. From hand-off until merge, the author
+   owns CI at the PR head: keep every required check green, fix it when it
+   goes red — CI maintenance rounds do not consume the fix-loop bound.
 
 ## Reviewer procedure
 
@@ -62,7 +64,10 @@ role procedure; never restate the contract from memory.
 2. **Apply rules**: R1–R6 in order, then the manifest rows, recording
    evidence anchors (file:line).
 3. **Verify**: run every relevant manifest command; a claimed green without a
-   run is a finding.
+   run is a finding. Check the PR's checks at the exact head under review
+   (`gh pr checks <n> -R <repo>`); a red required check (the manifest's
+   `merge-gate` row names them) is a BLOCKED-class fact: post BLOCKED, never
+   READY, naming the failing check.
 4. **Check body and evidence** against the contract; silently wrong rows in
    the author's table are a MAJOR finding.
 5. **Post one comment**: confirmed rules table, severity-ordered findings

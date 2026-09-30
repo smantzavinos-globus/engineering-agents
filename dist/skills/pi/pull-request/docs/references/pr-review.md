@@ -201,7 +201,11 @@ not ceilings.
 
 The merge gate is the repo's `merge-gate` manifest section (required checks,
 required verdict, who merges). Default across LLS repos: only the human
-merges; agents stage work for merge.
+merges; agents stage work for merge. Required checks are a hard gate in both
+directions: the Reviewer posts BLOCKED, never READY, when a required check is
+red at the reviewed head; the author (usually the babysitting session) keeps
+them green and fixes reds — CI maintenance rounds do not consume the
+fix-loop bound.
 
 ---
 

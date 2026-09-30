@@ -120,10 +120,13 @@ Rules that let them run on the same PR without fighting:
 7. **Babysit on open.** Under the [Delivery Pipeline](../references/delivery-pipeline.md#4-pr-lifecycle),
    the author posts a sweep-owned claim (`session=babysit-pr…`) when opening
    the PR, so babysitting starts without a mention. For sweep-owned claims the
-   sweep dispatches one round per new FIX verdict at the current head and one
+   sweep dispatches one round per new FIX verdict at the current head, one
    round per new completed bot review (e.g. Copilot) while the PR's bot-review
    count is under the cap (**5 per PR**, `PR_BOT_REVIEW_CAP`; bot login(s) in
-   `PR_BOT_REVIEWERS`). Bot reviews never count toward the fix-loop bound.
+   `PR_BOT_REVIEWERS`), and one round per CI red→green transition at the
+   stamped READY head (the author keeps required checks green; green again
+   restores `pr:ready-merge`). Bot reviews never count toward the fix-loop
+   bound; neither do CI maintenance rounds.
    Sweep-owned claims are not aged by heartbeat (rule 6 applies to
    chat-started claims only): between rounds nobody is running, by design.
 8. **Who owns the round loop.** A babysitter started from chat runs its own

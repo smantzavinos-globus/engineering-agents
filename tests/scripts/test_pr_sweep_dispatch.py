@@ -83,6 +83,41 @@ class BotRounds(unittest.TestCase):
         self.assertEqual((rev, capped, seen), (None, True, []))
 
 
+class CiRounds(unittest.TestCase):
+    STAMP = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    HEAD = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+    def test_red_at_stamp_fires_once_per_conclusion_set(self):
+        rollup = [{"name": "CI", "status": "COMPLETED", "conclusion": "SUCCESS"},
+                  {"name": "E2E", "status": "COMPLETED", "conclusion": "FAILURE"}]
+        fires, key, ok = d.ci_round_due(rollup, set(), self.STAMP, self.HEAD)
+        self.assertEqual(fires, ["E2E (FAILURE)"])
+        self.assertFalse(ok)
+        # same conclusion set again -> handled, no re-fire
+        fires, key, ok = d.ci_round_due(rollup, {key}, self.STAMP, self.HEAD)
+        self.assertEqual((fires, key), ([], None))
+
+    def test_green_restores(self):
+        rollup = [{"name": "CI", "status": "COMPLETED", "conclusion": "SUCCESS"}]
+        fires, key, ok = d.ci_round_due(rollup, set(), self.STAMP, self.HEAD)
+        self.assertEqual((fires, ok), ([], True))
+        self.assertTrue(key.endswith(":green"))
+
+    def test_moved_head_out_of_scope(self):
+        fires, key, ok = d.ci_round_due([{"name": "E2E", "status": "COMPLETED", "conclusion": "FAILURE"}],
+                                        set(), self.STAMP, "bbbbbbbb" + self.HEAD[8:])
+        self.assertEqual((fires, key, ok), ([], None, True))
+
+    def test_no_stamp_out_of_scope(self):
+        fires, key, ok = d.ci_round_due([], set(), None, self.HEAD)
+        self.assertEqual((fires, key, ok), ([], None, True))
+
+    def test_pending_checks_ignored(self):
+        rollup = [{"name": "CI", "status": "IN_PROGRESS", "conclusion": None}]
+        fires, key, ok = d.ci_round_due(rollup, set(), self.STAMP, self.HEAD)
+        self.assertEqual((fires, ok), ([], True))
+
+
 class Mentions(unittest.TestCase):
     def test_review_fix_babysit_self_and_seen(self):
         cs = [comment(1, "h", "@bot review please"),
