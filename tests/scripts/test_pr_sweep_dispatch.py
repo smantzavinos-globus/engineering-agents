@@ -10,6 +10,10 @@ import tempfile
 import unittest
 
 os.environ.setdefault("PR_SWEEP_REPOS", "o/r")
+# State isolation (N1, review round 2): the dispatcher reads PR_SWEEP_STATE at
+# import; HERMES_HOME pinning alone cannot isolate an explicitly inherited
+# PR_SWEEP_STATE (the live sweep env sets it). Hard-pin both BEFORE module load.
+os.environ["PR_SWEEP_STATE"] = tempfile.mkdtemp(prefix="pr-sweep-test-state-")
 os.environ.setdefault("HERMES_HOME", tempfile.mkdtemp(prefix="pr-sweep-dispatch-test-"))
 _PATH = pathlib.Path(__file__).resolve().parents[2] / "scripts" / "pr-sweep-dispatch.py"
 _spec = importlib.util.spec_from_file_location("dispatch", _PATH)
