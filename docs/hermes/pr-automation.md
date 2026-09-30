@@ -125,8 +125,10 @@ Rules that let them run on the same PR without fighting:
    count is under the cap (**5 per PR**, `PR_BOT_REVIEW_CAP`; bot login(s) in
    `PR_BOT_REVIEWERS`), and one round per CI red→green transition at the
    stamped READY head (the author keeps required checks green; green again
-   restores `pr:ready-merge`). Bot reviews never count toward the fix-loop
-   bound; neither do CI maintenance rounds.
+   restores `pr:ready-merge`). The round fires with or without an active
+   claim — the round posts its own claim; chat-started claims still get no
+   twin. Bot reviews never count toward the fix-loop bound; neither do CI
+   maintenance rounds.
    Sweep-owned claims are not aged by heartbeat (rule 6 applies to
    chat-started claims only): between rounds nobody is running, by design.
 8. **Who owns the round loop.** A babysitter started from chat runs its own

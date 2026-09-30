@@ -205,7 +205,11 @@ merges; agents stage work for merge. Required checks are a hard gate in both
 directions: the Reviewer posts BLOCKED, never READY, when a required check is
 red at the reviewed head; the author (usually the babysitting session) keeps
 them green and fixes reds — CI maintenance rounds do not consume the
-fix-loop bound.
+fix-loop bound. Division of labor: the manifest row binds the Reviewer's
+verdict; the sweep's mechanical demotion treats every completed failing
+check as red (its CI red→round transition fires once per head+conclusion
+set, tracked in `ci_key`); classic commit statuses (context/state) are not
+read.
 
 ---
 

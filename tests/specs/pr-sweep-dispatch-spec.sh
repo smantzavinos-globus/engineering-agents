@@ -65,7 +65,7 @@ case "$*" in
   *"issues/8/comments"*)
     C='[{"id":80,"user":{"login":"agent"},"body":"<!-- pr-review verdict=READY head=8888888888888888888888888888888888888888 -->"}'
     if [ "${PR8_LABEL:-}" = "pr:babysat" ]; then
-      C="$C,{\"id\":81,\"user\":{\"login\":\"agent\"},\"body\":\"babysit: session=babysit-pr-item8-x heartbeat=2000-01-01T00:00:00Z\"}"
+      C="$C,{\"id\":81,\"user\":{\"login\":\"agent\"},\"body\":\"babysit: session=${PR8_SESSION:-babysit-pr-item8-x} heartbeat=${PR8_HEARTBEAT:-2000-01-01T00:00:00Z}\"}"
     fi
     echo "$C]" ;;
   *"pulls/7/reviews"*)
@@ -97,8 +97,17 @@ check  "$OUT" "would spawn babysit for o/r#7" "bot-review batching: a pre-fix si
 
 # CI gate: red at the stamped READY head demotes; green restores; pending/none are not red.
 OUT="$(run GH_BIN="$BOT")"
-refute "$OUT" "would spawn babysit for o/r#8" "CI gate: red at READY head demotes, no round while demoted"
+check  "$OUT" "would spawn babysit for o/r#8" "CI gate: red at READY head demotes, round dispatched"
+check  "$OUT" "would set o/r#8 label pr:re-review" "CI gate: red at READY head demotes the label"
 check  "$OUT" "CI red at the READY head (E2E (FAILURE)); moved back to pr:re-review" "CI gate: demotion is reported once"
+# tick 2 (live-mode ledger seeded with the record's ci_key): label is now pr:re-review —
+# no re-dispatch and no second human-facing line for the same transition.
+mkdir -p "$TMP/state"
+printf '%s\n' '{"ts":0,"kind":"babysit","repo":"o/r","pr":8,"head":"8888888888888888888888888888888888888888","ci_key":"888888888888:E2E (FAILURE)"}' > "$TMP/state/dispatches.jsonl"
+OUT="$(run PR8_LABEL=pr:re-review GH_BIN="$BOT")"
+refute "$OUT" "would spawn babysit for o/r#8" "CI gate: the CI round fires once per red transition"
+refute "$OUT" "CI red" "CI gate: no second human-facing line for the same transition"
+rm -f "$TMP/state/dispatches.jsonl"
 OUT="$(run PR8_LABEL=pr:in-review GH_BIN="$BOT")"
 check  "$OUT" "CI red (E2E (FAILURE)); the babysitting author owns the fix." "CI gate: red under review reports ownership"
 OUT="$(run PR8_LABEL=pr:re-review CI_ROLLUP=green GH_BIN="$BOT")"
@@ -113,6 +122,16 @@ refute "$OUT" "CI red" "CI gate: no checks yet is not a red"
 # A sweep-owned babysitter takes the CI round when one is due.
 OUT="$(run PR8_LABEL=pr:babysat CI_ROLLUP=red GH_BIN="$BOT")"
 check  "$OUT" "would spawn babysit for o/r#8" "CI gate: sweep-owned claim gets a CI-fix round"
+
+# CI red with NO claim at all also gets the CI round: the sweep posts its own claim per the
+# prompt, so "nobody on the PR" must not leave a READY-stamped PR parked red until green.
+OUT="$(run PR8_LABEL=pr:ready-merge CI_ROLLUP=red GH_BIN="$BOT")"
+check  "$OUT" "would spawn babysit for o/r#8" "CI gate: red at READY head with no claim dispatches the round"
+
+# A chat-started claim must NOT get a sweep twin: only sweep-owned sessions (prefix babysit-pr)
+# are eligible for the CI round — the heartbeat must be FRESH so the claim is active, not stale.
+OUT="$(run PR8_LABEL=pr:babysat PR8_SESSION=20260101_chat PR8_HEARTBEAT="$(date -u +%Y-%m-%dT%H:%M:%SZ)" CI_ROLLUP=red GH_BIN="$BOT")"
+refute "$OUT" "would spawn babysit for o/r#8" "CI gate: chat-started claim gets no sweep twin"
 
 printf '\nResults: %d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

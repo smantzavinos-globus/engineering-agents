@@ -143,9 +143,16 @@ def ci_round_due(rollup, handled_keys, stamp_head, head):
     """(fires, key, ok): CI conclusions at the stamped READY head.
 
     key identifies (head, conclusion-set); None when out of scope — no READY
-    verdict, or the head moved past the stamp (push demotion owns that). fires
-    is non-empty only when key is new AND some completed check failed. ok is
-    overall health, used to restore a CI demotion once green."""
+    verdict at this head, or the head moved past the stamp (push demotion owns
+    that). fires is non-empty only when key is new AND some completed check
+    failed. ok is overall health, used to restore a CI demotion once green.
+
+    Red is an engine-level fact here: ANY completed failing check. The
+    required-vs-advisory split lives in each repo's merge-gate manifest row
+    and binds the Reviewer's verdict (docs/references/pr-review.md, Merge),
+    not this demotion. Only check-run rollups (name/status/conclusion) are
+    read; classic commit statuses (context/state) are ignored.
+    """
     if not stamp_head or not head.startswith(stamp_head):
         return [], None, True
     bad = sorted(f"{c.get('name')} ({c.get('conclusion')})" for c in (rollup or [])
@@ -295,6 +302,7 @@ def sweep_repo(repo, recs, reported):
             if label == "pr:ready-merge":
                 set_state_label(repo, n, "pr:re-review")
                 label = "pr:re-review"
+                reported.add(f"ci:{repo}#{n}:{ci_key}")
                 out.append(f"{repo}#{n}: CI red at the READY head ({'; '.join(ci_fires)}); moved back to pr:re-review until green.")
             elif label in ("pr:in-review", "pr:re-review"):
                 rkey = f"ci:{repo}#{n}:{ci_key}"
@@ -347,6 +355,11 @@ def sweep_repo(repo, recs, reported):
         verdict_id = last_v[2]["id"] if last_v else None
         round_done = any(r["kind"] == "babysit" and r["head"] == head and r.get("verdict_id") == verdict_id for r in mine)
         owned = claim == "active" and sweep_owned(comments)
+        # A CI red is author-ownable maintenance even with nobody on the PR: a
+        # READY-stamped head may not sit red unclaimed until green. The round
+        # posts its own sweep-owned claim (prompt step 1); chat-started
+        # claims still get no twin, and a stale claim recovers above.
+        ci_round = (owned or claim == "none") and bool(ci_fires)
         handled_bots = set()
         for r in mine:
             if r.get("bot_review_id"):
@@ -360,7 +373,6 @@ def sweep_repo(repo, recs, reported):
                 out.append(f"{repo}#{n}: bot-review cap ({BOT_CAP}) reached; no more bot rounds.")
         fix_round = owned and fix_at_head and not round_done
         bot_round = owned and bot_rev is not None and not fix_round
-        ci_round = owned and bool(ci_fires)
         want_babysit = (bool(mention_babysit) and claim == "none") or fix_round or bot_round or ci_round
         if want_babysit and not babysitter_running:
             rec = {"ts": time.time(), "kind": "babysit", "repo": repo, "pr": n, "head": head,

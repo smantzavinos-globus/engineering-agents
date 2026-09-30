@@ -70,6 +70,12 @@ _No items yet._
 - Source: Chat discussion during team-mode wave execution follow-up (2026-07-15); observed running `./tests/run-tests.sh all` after deploying `plans/2026_07_14_team_mode_wave_execution/`. Same root cause independently noted in TASK-0002's pi-subagents entry ("the repo's `test-fast` runtime snapshot step is environmentally broken here — bin-only pi package").
 - Notes: Root cause confirmed locally: `which pi` → `/home/spiros/.nix-profile/bin/pi` → realpath → `/nix/store/<hash>-pi/bin/pi`, a wrapper script that `export`s `PI_WRAPPER_REAL_PI_BIN=/nix/store/<hash>-pi-0.80.6/bin/pi` and execs `pi-launch-wrapper.sh`. The real package (with the expected `lib/node_modules/@earendil-works/pi-coding-agent/` layout) lives under that `PI_WRAPPER_REAL_PI_BIN` path, one level further down. Fix should make `buildPiModulePath()` detect and unwrap the startup wrapper (e.g. read `PI_WRAPPER_REAL_PI_BIN` out of the wrapper script, or exec `pi` with an env-dump escape hatch) before falling back to the current two-levels-up heuristic, so proof-set verification works both with and without the wrapper enabled. Not caused by and unrelated to the team-mode wave execution work; that feature's own verification (fast suite + flake eval, including explicit "skill installed" checks for the new skills) is fully green.
 
+### TASK-0006 — Plumb required-vs-advisory checks into the sweep engine
+- Status: Inbox
+- Summary: The sweep engine demotes `pr:ready-merge` on ANY completed failing check (engine-level red); the required-vs-advisory split lives in each repo's `merge-gate` manifest row and binds only the Reviewer's verdict (contracted in `docs/references/pr-review.md`, Merge). Once a real advisory check lands on a swept repo, add an engine input (e.g. `PR_SWEEP_REQUIRED_CHECKS`, repo→check-names map, default all = current behavior) consumed by `ci_round_due`.
+- Source: Independent review of PR #24 (finding F1, 2026-09-30); contract note added in the same PR.
+- Notes: Deliberately deferred — no swept repo currently runs an advisory check, so the env would be dead config. Revisit when the first advisory check appears.
+
 ## Clarification needed
 
 _No items yet._

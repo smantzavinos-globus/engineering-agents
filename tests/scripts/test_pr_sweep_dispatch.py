@@ -6,9 +6,11 @@ Requirement: FR-001
 import importlib.util
 import os
 import pathlib
+import tempfile
 import unittest
 
 os.environ.setdefault("PR_SWEEP_REPOS", "o/r")
+os.environ.setdefault("HERMES_HOME", tempfile.mkdtemp(prefix="pr-sweep-dispatch-test-"))
 _PATH = pathlib.Path(__file__).resolve().parents[2] / "scripts" / "pr-sweep-dispatch.py"
 _spec = importlib.util.spec_from_file_location("dispatch", _PATH)
 d = importlib.util.module_from_spec(_spec)
@@ -116,6 +118,62 @@ class CiRounds(unittest.TestCase):
         rollup = [{"name": "CI", "status": "IN_PROGRESS", "conclusion": None}]
         fires, key, ok = d.ci_round_due(rollup, set(), self.STAMP, self.HEAD)
         self.assertEqual((fires, ok), ([], True))
+
+
+class CiTick(unittest.TestCase):
+    """The tick's CI block end to end: one demotion, one round, one report.
+
+    The demotion branch must mark the transition reported (no second line on
+    the next tick) and dispatch the babysit round (no READY-stamped PR parked
+    red with nobody on it).
+    """
+    HEAD8 = "8" * 40
+
+    def make_pr(self):
+        return {"number": 9, "title": "t", "headRefName": "b", "headRefOid": self.HEAD8,
+                "labels": [{"name": "pr:ready-merge"}], "isDraft": False,
+                "statusCheckRollup": [{"name": "E2E", "status": "COMPLETED", "conclusion": "FAILURE"}]}
+
+    def test_one_round_one_report_over_two_ticks(self):
+        ready_comment = [{"id": 91, "user": {"login": "rev"},
+                          "body": f"<!-- pr-review verdict=READY head={self.HEAD8} -->"}]
+
+        def fake_gh(*args):
+            if args[:2] == ("pr", "list"):
+                return [self.make_pr()]
+            if args[0] == "api" and str(args[1]).startswith("repos/o/r/issues/9/comments"):
+                return ready_comment
+            return []
+
+        orig_gh, orig_label, orig_dry, orig_out = d.gh, d.set_state_label, d.DRY, d.out
+        seen_labels, recs, reported = [], [], set()
+        tick_lines = []  # the injected out list, held past the restore below
+        # Production-realistic ledger: the READY review's dispatch record with its
+        # delivered result file — this is what suppresses the reviewer leg at tick 1.
+        recs.append({"ts": 0, "kind": "review", "repo": "o/r", "pr": 9, "head": self.HEAD8,
+                     "tag": "review-pr9-stamped"})
+        d.RESULTS.mkdir(parents=True, exist_ok=True)
+        (d.RESULTS / "review-pr9-stamped.json").write_text('{"status": "FIXED"}')
+        d.gh = fake_gh
+        d.DRY = True
+        d.out = tick_lines
+        d.set_state_label = lambda repo, n, label: seen_labels.append(label)
+        try:
+            d.sweep_repo("o/r", recs, reported)  # tick 1: demote + dispatch + one report
+            first = len(tick_lines)
+            labels_tick1 = list(seen_labels)
+            seen_labels.clear()
+            d.sweep_repo("o/r", recs, reported)  # tick 2: handled, silent
+        finally:
+            d.gh, d.set_state_label, d.DRY, d.out = orig_gh, orig_label, orig_dry, orig_out
+        babysits = [r for r in recs if r["kind"] == "babysit"]
+        self.assertEqual(len(babysits), 1, "exactly one babysit round for the red transition")
+        self.assertEqual(babysits[0]["ci_key"], f"{self.HEAD8[:12]}:E2E (FAILURE)")
+        self.assertEqual(labels_tick1, ["pr:re-review"], "tick 1 demotes the label and nothing else — the round itself claims (prompt step 1)")
+        ci_keys = [k for k in reported if k.startswith("ci:")]
+        self.assertEqual(ci_keys, [f"ci:o/r#9:{self.HEAD8[:12]}:E2E (FAILURE)"],
+                         "the demotion branch must add the ci: key so tick 2 does not repeat the report")
+        self.assertEqual(len(tick_lines), first, "tick 2 must not repeat the CI report")
 
 
 class Mentions(unittest.TestCase):
