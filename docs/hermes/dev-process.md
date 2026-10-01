@@ -30,12 +30,11 @@ If this document and a canonical doc disagree, the canonical doc wins.
 
 ## Skill-sync checklist
 
-Superseded by the `skill-sync` skill + `tools/sync-skills.mjs`: agents
-install `dist/skills/hermes/` wholesale and re-align via the standard sync
-procedure (recorded upstream SHA, hash-diff, per-skill dispositions). The
-table below remains as the CONTENT checklist — what each installed skill
-must cover — useful when judging a `locally-modified` disposition or
-writing a `propose-upstream` PR.
+Skills are installed from `dist/skills/hermes/` and kept aligned via the
+`skill-sync` skill + `tools/sync-skills.mjs` (recorded upstream SHA,
+hash-diff, per-skill dispositions). The table below is the content
+checklist — what each installed skill must cover — used when judging a
+`locally-modified` disposition or writing a `propose-upstream` PR.
 
 | Agent-side skill | Must cover | Canonical source |
 |------------------|------------|------------------|
