@@ -60,7 +60,7 @@ Every task must include a TDD checklist with:
 - The implementation to make it pass
 - Verification commands
 
-The plan sets **`Parallel reviews`** (`single` or `multi-model`) alongside **`Task review default`** (`each` or `final-only`); any task may override per-task review with **`Task review: yes | no`**. Per-task review controls only the optional per-task code review; the final code review always runs. Choose per task, not by habit:
+The plan sets **`Parallel reviews`** (`dual` — default, two independent reviewers — or `multi-model`) alongside **`Task review default`** (`each` or `final-only`); any task may override per-task review with **`Task review: yes | no`**. Per-task review controls only the optional per-task code review; the final code review always runs. Choose per task, not by habit:
 - Review (`yes`): contract or characterization tasks, schema/migration/auth/permission changes, changes that cross packages, high-tier tasks, and tasks whose output later tasks build on directly.
 - Skip (`no`): low-tier mechanical tasks, documentation-only tasks, and `check`-class tasks that a command fully proves.
 - Default `final-only` for small or independent-task plans; default `each` for large or tightly dependent ones.

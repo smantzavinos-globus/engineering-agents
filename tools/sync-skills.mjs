@@ -4,7 +4,7 @@
 // judges (take-upstream / keep-local / propose-upstream) and copies.
 //
 // Usage:
-//   node tools/sync-skills.mjs --installed <dir> [--harness hermes] [--json]
+//   node tools/sync-skills.mjs --installed <dir> [--harness hermes] [--since <sha>] [--json]
 //
 // Report per skill: unchanged | upstream-new | locally-modified | locally-only
 // plus `--json` machine output for the agent's sync-state file.
@@ -12,6 +12,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,6 +31,7 @@ function parseArgs(argv) {
     if (argv[i] === '--installed') args.installed = argv[++i];
     else if (argv[i] === '--harness') args.harness = argv[++i];
     else if (argv[i] === '--json') args.json = true;
+    else if (argv[i] === '--since') args.since = argv[++i];
     else fail(`unknown argument: ${argv[i]}`);
   }
   if (!args.installed) fail('missing --installed <dir>');
@@ -67,20 +70,46 @@ const installed = hashTree(args.installed);
 
 const upstreamSkills = fs.readdirSync(upstreamRoot, { withFileTypes: true })
   .filter((e) => e.isDirectory()).map((e) => e.name);
-const installedSkills = fs.readdirSync(args.installed, { withFileTypes: true })
-  .filter((e) => e.isDirectory() && !e.name.startsWith('.')).map((e) => e.name);
+// Installed stores may be flat (<dir>/<skill>/SKILL.md) or nested by category
+// (<dir>/<category>/<skill>/SKILL.md, as Hermes does). Find skills by SKILL.md.
+const installedDirs = new Map();
+(function find(dir, depth) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!e.isDirectory() || e.name.startsWith('.')) continue;
+    const full = path.join(dir, e.name);
+    if (fs.existsSync(path.join(full, 'SKILL.md'))) installedDirs.set(e.name, full);
+    else if (depth < 2) find(full, depth + 1);
+  }
+})(args.installed, 0);
+const installedSkills = [...installedDirs.keys()];
+// --since <sha>: the rendered tree at the last synced upstream commit, so an
+// installed skill identical to it (but not to HEAD) is 'upstream-new'.
+let sinceRoot = null;
+if (args.since) {
+  sinceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'sync-skills-'));
+  let tar;
+  try {
+    tar = execFileSync('git', ['archive', args.since, `dist/skills/${args.harness}`], { cwd: REPO_ROOT, maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    fail(`--since ${args.since}: no rendered ${args.harness} tree at that commit (fetch it, or omit --since)`);
+  }
+  execFileSync('tar', ['-x', '-C', sinceRoot], { input: tar });
+  sinceRoot = path.join(sinceRoot, 'dist', 'skills', args.harness);
+}
 
 // Per-skill hash: hash of the skill's own file set (relative to the skill dir).
-function skillRoots(root, skills) {
+function skillRoots(root, skills, dirs) {
   const map = new Map();
   for (const skill of skills) {
-    const dir = path.join(root, skill);
+    const dir = dirs ? dirs.get(skill) : path.join(root, skill);
+    if (!fs.existsSync(dir)) continue;
     map.set(skill, hashTree(dir));
   }
   return map;
 }
 const up = skillRoots(upstreamRoot, upstreamSkills);
-const inst = skillRoots(args.installed, installedSkills);
+const inst = skillRoots(args.installed, installedSkills, installedDirs);
+const old = sinceRoot ? skillRoots(sinceRoot, upstreamSkills) : new Map();
 
 const report = [];
 for (const skill of [...new Set([...upstreamSkills, ...installedSkills])].sort()) {
@@ -92,18 +121,13 @@ for (const skill of [...new Set([...upstreamSkills, ...installedSkills])].sort()
   else if (!hasUp && hasIn) status = 'locally-only';
   else if (up.get(skill).root === inst.get(skill).root) status = 'unchanged';
   else {
-    status = 'locally-modified';
-    // If the installed tree matches an OLDER upstream tree verbatim, this is
-    // simply upstream-new; distinguish via the union diff below.
+    status = old.get(skill)?.root === inst.get(skill).root ? 'upstream-new' : 'locally-modified';
     const union = new Set([...Object.keys(up.get(skill).tree), ...Object.keys(inst.get(skill).tree)]);
     changedFiles = [...union].filter((rel) => up.get(skill).tree[rel] !== inst.get(skill).tree[rel]);
   }
   report.push({ skill, status, changed_files: changedFiles });
 }
 
-// upstream-new = identical content exists in git history? The script cannot
-// know history; it reports locally-modified and the agent consults git
-// (`git log -- <skill>`) to see if upstream moved without local edits.
 if (!args.json) {
   process.stdout.write(`Skill sync report — upstream: dist/skills/${args.harness}/ vs installed: ${args.installed}\n`);
   process.stdout.write(`Upstream tree: ${upstream.root}  (${upstreamSkills.length} skills)\n\n`);
@@ -112,8 +136,7 @@ if (!args.json) {
   }
   process.stdout.write(`\nDispositions are YOURS to make (see the skill-sync skill):\n`);
   process.stdout.write(`  take-upstream | keep-local (record reason) | propose-upstream (PR)\n`);
-  process.stdout.write(`For 'locally-modified', check git first: git log --oneline -- dist/skills/${args.harness}/<skill>\n`);
-  process.stdout.write(`to distinguish 'upstream moved' from 'local edits exist'.\n`);
+  if (!args.since) process.stdout.write(`Pass --since <last-synced-sha> to separate 'upstream-new' from 'locally-modified'.\n`);
 } else {
   process.stdout.write(JSON.stringify({
     upstream_tree: upstream.root,

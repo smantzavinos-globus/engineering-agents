@@ -54,5 +54,29 @@
       "source": "docs/references/delivery-pipeline.md",
       "target": "docs/references/delivery-pipeline.md"
     }
+  ],
+  "software-development": [
+    {
+      "source": "docs/hermes/execution-modes.md",
+      "target": "references/execution-modes.md"
+    },
+    {
+      "source": "docs/testing-strategy.md",
+      "target": "references/testing-strategy.md"
+    },
+    {
+      "source": "docs/references/agent-roles.md",
+      "target": "references/agent-roles.md"
+    }
+  ],
+  "execution-orchestrator": [
+    {
+      "source": "docs/references/agent-roles.md",
+      "target": "docs/references/agent-roles.md"
+    },
+    {
+      "source": "docs/hermes/execution-modes.md",
+      "target": "references/execution-modes.md"
+    }
   ]
 }

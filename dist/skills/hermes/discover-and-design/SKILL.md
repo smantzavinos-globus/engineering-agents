@@ -1,7 +1,7 @@
 ---
 name: discover-and-design
 description: Document an already-discussed piece of work into an accepted brief.md plus approach.md. Use when the problem, scope, and design direction were already talked through in detail and what remains is writing it down, checking for genuinely overlooked gaps, and asking only targeted clarifying questions. For simple obvious tasks use Discover and Design Simple. To start from a vague idea use Discovery then Design.
-harnesses: [pi, hermes]
+compatibility: hermes
 ---
 
 # Discover and Design
@@ -71,9 +71,7 @@ process with these changes:
    points and behavior it assumes. A few file reads in this session is usually
    enough; at most one focused research delegate:
 
-{{delegate:research skill=research}}
-Verify [specific claim from the discussion] against [specific files/modules]. Write findings to [path/findings/current_state.md]. Keep it short and evidence-based.
-{{/delegate}}
+pi -p --session-id <plan-slug>-research-<topic> --name "researcher" --model <model-for-researcher> --skill <skills-dir>/research "Role: researcher. Verify [specific claim from the discussion] against [specific files/modules]. Write findings to [path/findings/current_state.md]. Keep it short and evidence-based. Follow the loaded skill 'research' as the process for this work; if it did not load, stop and report."
 
    Do not run a broad topic-by-topic research program — that is what the full
    Design phase is for.
@@ -95,9 +93,7 @@ Verify [specific claim from the discussion] against [specific files/modules]. Wr
    do not edit canonical requirements.
 5. **Run one approach review pass** unless the human waives it:
 
-{{delegate:approachReview skill=review-approach}}
-Review the approach at [plan directory path]/approach.md for architectural soundness and brief alignment.
-{{/delegate}}
+pi -p --session-id <plan-slug>-approach-review-<N> --name "approach-reviewer" --model <model-for-approach-reviewer> --skill <skills-dir>/review-approach "Role: approach-reviewer. Review the approach at [plan directory path]/approach.md for architectural soundness and brief alignment. Follow the loaded skill 'review-approach' as the process for this work; if it did not load, stop and report. (Fresh session: never reuse the author's session id.)"
 
    Fix what it finds in one pass. If review exposes a real design fork the
    discussion never settled, stop — that work belongs in the full Design
@@ -106,7 +102,7 @@ Review the approach at [plan directory path]/approach.md for architectural sound
    files. Then commit `brief.md`, `approach.md`, `approach_review.md` (if
    any), `findings/` (if any), and `state.json` as
    `design: document agreed approach for <slug>`.
-7. **Next step:** "{{note:design-execute-standard}}"
+7. **Next step:** "The approach is ready. Create the plan with the create-plan skill, review it with the review-plan skill, and once the human has approved it execute it task-by-task (the execute-task skill per task, sequential with opportunistic parallel dispatch)."
 
 ## Quality bar
 

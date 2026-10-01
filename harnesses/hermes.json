@@ -1,26 +1,52 @@
 {
   "id": "hermes",
   "compatibility": "hermes",
-  "skillPathPrefix": "~/.hermes/skills/",
+  "skillPathPrefix": "<skills-dir>/",
   "delegationStyle": "hermes-pi",
   "hiddenSkills": [
     "configure-pi",
     "configure-opencode"
   ],
   "roles": {
-    "planner": { "role": "planner" },
-    "planReview": { "role": "plan-reviewer" },
-    "approachReview": { "role": "approach-reviewer" },
-    "epicReview": { "role": "epic-reviewer" },
-    "codeReview": { "role": "code-reviewer" },
-    "worklog": { "role": "worklog" },
-    "executeTask": { "role": "worker" },
-    "executeTaskHigh": { "role": "worker-high" },
-    "executeTaskLow": { "role": "worker-low" },
-    "fix": { "role": "worker" },
-    "research": { "role": "researcher" },
-    "researchExternal": { "role": "researcher" },
-    "oracle": { "role": "oracle" }
+    "planner": {
+      "role": "planner"
+    },
+    "planReview": {
+      "role": "plan-reviewer"
+    },
+    "approachReview": {
+      "role": "approach-reviewer"
+    },
+    "epicReview": {
+      "role": "epic-reviewer"
+    },
+    "codeReview": {
+      "role": "code-reviewer"
+    },
+    "worklog": {
+      "role": "worklog"
+    },
+    "executeTask": {
+      "role": "worker"
+    },
+    "executeTaskHigh": {
+      "role": "worker-high"
+    },
+    "executeTaskLow": {
+      "role": "worker-low"
+    },
+    "fix": {
+      "role": "worker"
+    },
+    "research": {
+      "role": "researcher"
+    },
+    "researchExternal": {
+      "role": "researcher"
+    },
+    "oracle": {
+      "role": "oracle"
+    }
   },
   "notes": {
     "ui-implementation-target": "the worker delegate",

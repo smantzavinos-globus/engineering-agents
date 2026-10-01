@@ -306,6 +306,20 @@ else
   fail "a rendered Pi subagent block is not valid JavaScript"
 fi
 
+# Hermes alignment (PR #25 follow-up): every skill the Hermes pipeline routes
+# to must render for Hermes; pi delegations must select model + skill and keep
+# reviewer sessions distinct; packaged references must exist.
+H="$REPO_ROOT/dist/skills/hermes"
+for s in discover-and-design discover-and-design-simple babysit-pr software-development skill-sync; do
+  if [[ -f "$H/$s/SKILL.md" ]]; then pass "hermes tree renders $s"; else fail "hermes tree is missing $s"; fi
+done
+for r in execution-modes.md testing-strategy.md agent-roles.md; do
+  if [[ -f "$H/software-development/references/$r" ]]; then pass "software-development packages $r"; else fail "software-development lacks references/$r"; fi
+done
+if grep -rq -- '--session-id <session-id>' "$H"; then fail "hermes pi delegation uses a shared <session-id> placeholder"; else pass "hermes pi delegations use stage-specific session ids"; fi
+if grep -rh '^pi -p ' "$H" | grep -v -- '--model <model-for-' | grep -q .; then fail "a hermes pi delegation lacks --model"; else pass "every hermes pi delegation selects a model"; fi
+if grep -rh '^pi -p .*--name "[a-z-]*reviewer"' "$H" | grep -v -- '-review-<N>' | grep -q .; then fail "a hermes review delegation reuses a non-review session id"; else pass "hermes review delegations get -review-<N> session ids"; fi
+
 printf '\n'
 printf 'Results: %d passed, %d failed\n' "$PASS" "$FAIL"
 if [[ "$FAIL" -gt 0 ]]; then

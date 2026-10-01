@@ -1,7 +1,7 @@
 ---
 name: discover-and-design-simple
 description: Fast path from a clear request to brief.md plus approach.md for simple, well-posed tasks. Use when the change is small, the outcome is known, and there is at most one obvious design. For work already talked through in detail that now needs documenting use Discover and Design. For vague, high-blast-radius, or multi-option problems use Discovery then Design instead.
-harnesses: [pi, hermes]
+compatibility: hermes
 ---
 
 # Discover and Design Simple (speed run)
@@ -34,9 +34,7 @@ Do not pretend a speed run is still appropriate after that. Hand off.
    ambiguous. Do not walk a question checklist.
 2. **Look at the code** that will change. One focused research pass is enough.
 
-{{delegate:research skill=research}}
-Research [specific files/modules]. Write findings to [path/findings/current_state.md]. Keep it short and evidence-based.
-{{/delegate}}
+pi -p --session-id <plan-slug>-research-<topic> --name "researcher" --model <model-for-researcher> --skill <skills-dir>/research "Role: researcher. Research [specific files/modules]. Write findings to [path/findings/current_state.md]. Keep it short and evidence-based. Follow the loaded skill 'research' as the process for this work; if it did not load, stop and report."
 
 Skip the delegate if you can answer from a few file reads in this session.
 3. **Write both artifacts** into the plan directory (ask for the path if
@@ -47,7 +45,7 @@ Skip the delegate if you can answer from a few file reads in this session.
 4. **Show the paths and wait.** Do not commit until the human accepts both
    files. Then commit `brief.md`, `approach.md`, `findings/` (if any), and
    `state.json` as `design: speed-run approach for <slug>`.
-5. **Next step:** "{{note:design-execute-standard}}"
+5. **Next step:** "The approach is ready. Create the plan with the create-plan skill, review it with the review-plan skill, and once the human has approved it execute it task-by-task (the execute-task skill per task, sequential with opportunistic parallel dispatch)."
 
 For a true simple change (obvious, tiny, no design), write only `brief.md` at
 plan level `simple` and say they can implement directly.
