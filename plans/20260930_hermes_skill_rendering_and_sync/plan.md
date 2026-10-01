@@ -24,20 +24,20 @@ agents) + Spiros rulings in-thread.
   notes resolved) + renderer support so `node tools/render-skills.mjs
   --write` emits `dist/skills/hermes/`. Update `docs/skill-rendering.md`.
   Renderer tests extended per repo conventions.
-- [ ] **A2. NEW canonical skill `skills/software-development/`** — the
+- [x] **A2. NEW canonical skill `skills/software-development/`** (DONE on branch) — the
   top-level entry. Contents: the STAGE-GATE TABLE (normative: which
   artifacts must exist before each stage starts — brief.md gates research;
   approach.md gates planning; plan review + human approval gate execution);
   how the stage skills chain; the agent's role at each human gate; autonomy
   defaults; the trigger phrase (`follow the dev process`) in the
   description so fresh sessions load it. Owns NO stage content — routes.
-- [ ] **A3. NEW canonical skill `skills/skill-sync/`** — the sync
+- [x] **A3. NEW canonical skill `skills/skill-sync/`** (DONE on branch) — the sync
   procedure: record upstream SHA, diff installed vs `dist/skills/hermes/`,
   per-file disposition rules (`take-upstream` / `keep-local` (repo-local
   change, recorded) / `propose-upstream` (worth an upstream PR)),
   report format, bootstrap note (first sync happens by hand-copy per the
   procedure — chicken-and-egg acknowledged).
-- [ ] **A4. Sync tool `tools/sync-skills.mjs`** — standard, upstream: given
+- [x] **A4. Sync tool `tools/sync-skills.mjs`** (DONE on branch; read-only reporter, smoke-tested) — standard, upstream: given
   the installed-skills dir + repo, emits the sync report (unchanged /
   upstream-new / locally-modified / locally-only + suggested disposition).
   Hash-diff only; dispositions are the agent's judgment, surfaced not made.

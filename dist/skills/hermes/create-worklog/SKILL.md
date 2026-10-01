@@ -1,7 +1,7 @@
 ---
 name: create-worklog
 description: Create a worklog.md execution log from a reviewed plan. The worklog serves as the single entry point for each implementation iteration — read it first, do one task, update it, advance. Use after plan review passes.
-harnesses: [opencode, hermes]
+compatibility: hermes
 ---
 
 # Create Worklog
