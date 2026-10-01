@@ -2,6 +2,9 @@
 
 # <Title> — Execution Worklog
 
+**Execution mode:** <pi subprocesses | Hermes subagents | single session — selected at plan approval>
+**Plan approval:** <approved by/date>
+
 ## Entry-Point Contract
 
 - **Read this file first** every time you start working on this plan.

@@ -80,13 +80,13 @@ Each `harnesses/<id>.json` declares:
 
 - `compatibility` — value stamped into rendered frontmatter (`pi`, `opencode`, or `hermes`).
 - `skillPathPrefix` — where skills live on that harness (used when a named-subagent delegation embeds a "read your skill file at …" instruction).
-- `delegationStyle` — `pi-subagent`, `opencode-task`, or `hermes-delegate`
-  (Hermes renders `delegate_task(tasks=[{goal: "Role: <role>. <prompt> Load
-  and follow your skill '<skill>' (via skill_view)..."}])`; roles are prose
-  lines — Hermes has no named subagent roster — and Hermes agents pick up
-  skills by syncing `dist/skills/hermes/` into their own skill stores; see
-  the `skill-sync` skill).
-- `roles` — maps each role to an implementation: a named subagent (`{ "kind": "agent", "agent": "worker" }`), a task category (`{ "kind": "category", "category": "ultrabrain" }`), or a built-in subagent type (`{ "kind": "subagent_type", "subagent_type": "explore" }`).
+- `delegationStyle` — `pi-subagent`, `opencode-task`, or `hermes-pi` (Hermes
+  renders `pi -p --session-id <plan-slug>-<stage>[-review-<N>] --name "<role>"
+  "<prompt>"` — Hermes agents drive pi subprocesses as their standard mode;
+  reviews always get fresh session ids, never the author's. Hermes agents
+  pick up skills by syncing `dist/skills/hermes/` into their own stores;
+  see the `skill-sync` skill).
+- `roles` — maps each role to an implementation: a named subagent (`{ "kind": "agent", "agent": "worker" }`), a task category (`{ "kind": "category", "category": "ultrabrain" }`), a built-in subagent type (`{ "kind": "subagent_type", "subagent_type": "explore" }`), or a role label (`{ "role": "worker" }` for `hermes-pi`, rendered as a `Role:` line inside the pi prompt).
 - `notes` — harness-specific strings for `{{note:KEY}}`.
 
 ### Role → implementation mapping

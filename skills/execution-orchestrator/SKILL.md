@@ -16,8 +16,11 @@ You are the autonomous execution coordinator. You manage the full lifecycle by c
 - Target directory path
   - Standard/child-plan directory MUST contain: `brief.md`, `findings/`, `approach.md`
   - Epic root directory MUST contain: `brief.md`, `findings/`, `approach.md`, `epic.md`, and `epic_review.md`
-- Execution mode (select per the `software-development` skill's mode table
-  — pi subprocesses by default; record the choice in the worklog header):
+- Execution mode (select per the mode table — pi subprocesses by default;
+  Hermes subagents for simple ≤~3-task plans with no parallelism worth
+  isolating; single session only for trivial single-sitting changes. The
+  `software-development` entry skill carries the full table; record the
+  choice in the worklog header):
   - **approval-gate** (default): Stop after plan review for human approval before implementing
   - **auto-continue**: Only stop for critical/irreversible decisions
   - **detached**: Run unattended under `work-item`. Every point where this skill would wait for the human becomes a gate comment on the backlog item (per the `backlog` skill), after which the session commits and ends. The item's `Autonomy` field decides the plan gate: `gated` posts it, `auto` continues.

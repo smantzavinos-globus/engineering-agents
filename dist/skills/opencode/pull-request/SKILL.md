@@ -26,8 +26,12 @@ role procedure; never restate the contract from memory.
 1. Read the canonical contract (above).
 2. Read the target repo's `pr-review-hooks.md` manifest at its root. No
    manifest: STOP, report the repo as not onboarded, offer assess-repo.
-3. Load every file the manifest's `review-inputs` section names.
-4. Completion check: you can state the repo's verification commands, evidence
+3. **Verify the code-review gate**: read `<plan-dir>/code_review.md`; its
+   latest pass must be COMPLETE (zero open Blocker/Critical/Major). If not,
+   stop and route to `review-code` — do not author or review a PR past an
+   open code review.
+4. Load every file the manifest's `review-inputs` section names.
+5. Completion check: you can state the repo's verification commands, evidence
    method, and merge gate without re-reading.
 
 ## Author procedure
@@ -76,9 +80,9 @@ role procedure; never restate the contract from memory.
    (`READY` / `FIX` / `BLOCKED` per the contract), and on READY the stamp
    `reviewed@<sha>` of the exact HEAD you reviewed. No stamp on FIX/BLOCKED.
    End the comment with the machine-readable marker
-   `<!-- pr-review verdict=<VERDICT> head=<full sha> -->` (see
-   `docs/hermes/pr-automation.md` → Verdict marker) so automation can read
-   the state without an LLM.
+   `<!-- pr-review verdict=<VERDICT> head=<full sha> -->` — VERDICT is one of
+   `READY | FIX | BLOCKED`; head is the full reviewed commit sha — so
+   automation can read the state without an LLM.
 6. **Notify** per the contract's loop rules: the human hears about READY,
    BLOCKED, and ESCALATE — never intermediate FIX states. Bound: two fix
    loops, then escalate with findings history.

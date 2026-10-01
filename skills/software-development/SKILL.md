@@ -19,7 +19,7 @@ Stage skills (universal — the same pipeline for every harness):
 
 | Stage | Skill |
 | --- | --- |
-| Brief | `discovery` / `discover-and-design*` |
+| Brief | `discovery` (the combined brief+approach `discover-and-design` variant exists in the pi tree only) |
 | Research | `research` |
 | Approach | `design` |
 | Approach review | `review-approach` |
@@ -77,28 +77,48 @@ escalating mid-execution is cheap, de-escalating is not.
 
 ## Locating yourself
 
-- **New work item** (no brief): start at `discovery` (or
-  `discover-and-design` if brief+approach will be one session).
+- **New work item** (no brief): start at `discovery` (pi-tree agents may use
+  the combined `discover-and-design` variant when brief+approach fit one
+  session).
 - **Epic-scale work**: the brief/approach become an epic skeleton
   (`epic.md`, numbered child plans); use `review-epic` at the epic layer.
   Child plans enter at PLAN in the table above, gated by the epic approach.
 - **Existing plan approved**: `create-worklog`, then `execute-task`.
 - **"Review this"**: identify the artifact (approach/plan/code/PR) → the
   matching `review-*` skill.
-- **Bug fix**: `process.md` §Bug Fix — brief → debug/research → approach →
-  the planning pipeline.
+- **Bug fix**: `docs/process.md` §Bug Fix (in the engineering-agents repo) —
+  brief → debug/research → approach → the planning pipeline.
+
+## Process choices (each has a point, a mechanism, and a record)
+
+Every choice in the process happens at a defined point, by a defined
+mechanism, documented in a defined place:
+
+| Choice | When it happens | Mechanism | Documented in |
+| --- | --- | --- | --- |
+| Execution mode (pi subprocesses / Hermes subagents / single session) | At plan approval | Confirm with the human (default: pi subprocesses) | Worklog header |
+| Parallel reviews (single reviewer loop vs 2–3 multi-model reviewers) | At plan creation | Agent proposes per plan risk; human confirms at plan approval | plan.md "Parallel reviews" choice row; if multi-model, the review files carry a merged findings table with per-reviewer attribution |
+| Per-task review (yes/no per task) | At plan creation | Agent proposes per task risk (a `no` on schema/auth/migration tasks is a review finding); human confirms at plan approval | plan.md task graph |
+| Approval gates (approval-gate / auto-continue / detached) | At execution start | Human decides (default: approval-gate) | Worklog header |
+| Contract freezes | When a contract-task's tests are frozen | Agent-determines; changing frozen tests afterward requires human approval | plan.md freeze schedule + worklog |
 
 ## Autonomy defaults (harness/human may override per plan)
 
 - **Auto**: everything WITHIN an approved plan's execution (task order,
   internal fixes, gate re-runs).
 - **Human gates**: (1) plan approval before execution; (2) contract
-  freezes; (3) owner-ruling classes — irreversible actions, external
-  contact, spend, security posture; (4) PR merge (agents never merge).
-- Reviews are always delegated to a DIFFERENT agent than the author.
+  freezes — the point where a contract task's tests are declared frozen;
+  changing them afterward requires human approval; (3) owner-ruling
+  classes — irreversible actions, external contact, spend, security
+  posture; (4) PR merge (agents never merge).
+- Reviews are always delegated to a DIFFERENT agent than the author, in a
+  fresh session (never the author's session id).
 
-## Multi-model rule
+## Review bar
 
-Approach/plan reviews use 2–3 parallel reviewers on distinct model
-families; iterate until zero Critical findings; Minors ride with recorded
-follow-ups. Full mechanics live in the review skills.
+A plan/code review passes at zero **Blocker/Critical/Major** findings;
+Minors ride with recorded follow-ups. Approach/plan/code reviews run as a
+loop: each round re-reviews the fixed artifact until the bar is met. When
+the plan selects parallel reviews, 2–3 reviewers on distinct model
+families run the round and their findings merge into one review file with
+per-reviewer attribution.

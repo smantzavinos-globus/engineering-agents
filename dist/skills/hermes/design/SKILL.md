@@ -55,7 +55,7 @@ Ask the human to confirm before starting research.
 For each approved topic, call a research sub-agent:
 
 ```
-pi --session-id <session-id> --name "researcher" "Role: researcher. Research [topic]. Plan directory: [path]. Write findings to findings/[filename].md Load and follow the skill 'research' at ~/.pi/agent/skills/research/SKILL.md before working."
+pi -p --session-id <session-id> --name "researcher" "Role: researcher. Research [topic]. Plan directory: [path]. Write findings to findings/[filename].md Load and follow the skill 'research' (at ~/.hermes/skills/research/SKILL.md, or locate it in your skills directory and report if missing) before working."
 ```
 
 Each research call produces one focused findings file.
@@ -97,7 +97,7 @@ Do NOT stop after `approach.md` for epics. An epic is not ready for execution un
 After writing approach.md, run the approach review:
 
 ```
-pi --session-id <session-id> --name "approach-reviewer" "Role: approach-reviewer. Review the approach at [plan directory path]/approach.md for architectural soundness and brief alignment. Load and follow the skill 'review-approach' at ~/.pi/agent/skills/review-approach/SKILL.md before working."
+pi -p --session-id <session-id> --name "approach-reviewer" "Role: approach-reviewer. Review the approach at [plan directory path]/approach.md for architectural soundness and brief alignment. Load and follow the skill 'review-approach' (at ~/.hermes/skills/review-approach/SKILL.md, or locate it in your skills directory and report if missing) before working."
 ```
 
 Iterate until status is COMPLETE (max 3 passes). Fix issues between passes.
@@ -106,7 +106,7 @@ Iterate until status is COMPLETE (max 3 passes). Fix issues between passes.
 After writing `epic.md`, run the epic decomposition review:
 
 ```
-pi --session-id <session-id> --name "epic-reviewer" "Role: epic-reviewer. Review the epic decomposition at [plan directory path]/epic.md for workstream completeness, sequencing, preparatory work, and child-plan readiness. Load and follow the skill 'review-epic' at ~/.pi/agent/skills/review-epic/SKILL.md before working."
+pi -p --session-id <session-id> --name "epic-reviewer" "Role: epic-reviewer. Review the epic decomposition at [plan directory path]/epic.md for workstream completeness, sequencing, preparatory work, and child-plan readiness. Load and follow the skill 'review-epic' (at ~/.hermes/skills/review-epic/SKILL.md, or locate it in your skills directory and report if missing) before working."
 ```
 
 Iterate until status is COMPLETE (max 3 passes). Fix issues between passes.
@@ -157,13 +157,13 @@ If research or design reveals that durable requirements are missing, unclear, or
 Delegate codebase research to a subagent:
 
 ```
-pi --session-id <session-id> --name "researcher" "Role: researcher. Research [specific topic]. Read the brief at [path/brief.md] for context. Write findings to [path/findings/filename.md]. Load and follow the skill 'research' at ~/.pi/agent/skills/research/SKILL.md before working."
+pi -p --session-id <session-id> --name "researcher" "Role: researcher. Research [specific topic]. Read the brief at [path/brief.md] for context. Write findings to [path/findings/filename.md]. Load and follow the skill 'research' (at ~/.hermes/skills/research/SKILL.md, or locate it in your skills directory and report if missing) before working."
 ```
 
 Delegate external/web research to a subagent:
 
 ```
-pi --session-id <session-id> --name "researcher" "Role: researcher. Research [specific topic] using web search and external sources. Write findings to [path/findings/filename.md]. Load and follow the skill 'research' at ~/.pi/agent/skills/research/SKILL.md before working."
+pi -p --session-id <session-id> --name "researcher" "Role: researcher. Research [specific topic] using web search and external sources. Write findings to [path/findings/filename.md]. Load and follow the skill 'research' (at ~/.hermes/skills/research/SKILL.md, or locate it in your skills directory and report if missing) before working."
 ```
 
 You can delegate multiple independent research tasks before synthesizing findings.
