@@ -23,7 +23,7 @@ printf 'Skill render pipeline verification\n'
 printf '==================================\n\n'
 
 # Harness profiles exist and are valid JSON
-for harness in pi opencode; do
+for harness in pi opencode hermes; do
   profile="$REPO_ROOT/harnesses/${harness}.json"
   if node -e "JSON.parse(require('fs').readFileSync('$profile','utf8'))" 2>/dev/null; then
     pass "Harness profile '${harness}.json' is valid JSON"
@@ -256,7 +256,7 @@ else
 fi
 
 # Every rendered SKILL.md must carry the harness-correct compatibility value
-for harness in pi opencode; do
+for harness in pi opencode hermes; do
   bad=0
   while IFS= read -r f; do
     if ! grep -q "^compatibility: ${harness}$" "$f"; then bad=$((bad + 1)); fi

@@ -136,6 +136,19 @@ function renderDelegate(harness, skillName, role, skill, prompt) {
     lines.push('})');
     return lines.join('\n');
   }
+  if (harness.delegationStyle === 'hermes-delegate') {
+    // Hermes agents delegate via delegate_task(tasks=[{goal, context}]).
+    // Roles are rendered as a Role line inside the goal (Hermes has no named
+    // subagent roster; the role sentence orients the child). A `skill=` macro
+    // argument points the child at the rendered skill by name — Hermes agents
+    // load skills by name via their skill_view tool.
+    const roleLine = def.role ? `Role: ${def.role}. ` : '';
+    let goal = `${roleLine}${prompt}`;
+    if (skill) {
+      goal += ` Load and follow your skill '${skill}' (via skill_view) as the process for this task.`;
+    }
+    return `delegate_task(tasks=[{goal: ${jsString(goal)}}])`;
+  }
   if (harness.delegationStyle === 'opencode-task') {
     if (def.kind === 'category') {
       const loadSkills = skill ? `[${jsString(skill)}]` : '[]';

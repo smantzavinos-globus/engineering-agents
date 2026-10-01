@@ -80,7 +80,12 @@ Each `harnesses/<id>.json` declares:
 
 - `compatibility` — value stamped into rendered frontmatter (`pi` or `opencode`).
 - `skillPathPrefix` — where skills live on that harness (used when a named-subagent delegation embeds a "read your skill file at …" instruction).
-- `delegationStyle` — `pi-subagent` or `opencode-task`.
+- `delegationStyle` — `pi-subagent`, `opencode-task`, or `hermes-delegate`
+  (Hermes renders `delegate_task(tasks=[{goal: "Role: <role>. <prompt> Load
+  and follow your skill '<skill>' (via skill_view)..."}])`; roles are prose
+  lines — Hermes has no named subagent roster — and Hermes agents pick up
+  skills by syncing `dist/skills/hermes/` into their own skill stores; see
+  the `skill-sync` skill).
 - `roles` — maps each role to an implementation: a named subagent (`{ "kind": "agent", "agent": "worker" }`), a task category (`{ "kind": "category", "category": "ultrabrain" }`), or a built-in subagent type (`{ "kind": "subagent_type", "subagent_type": "explore" }`).
 - `notes` — harness-specific strings for `{{note:KEY}}`.
 

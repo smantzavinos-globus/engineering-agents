@@ -1,7 +1,7 @@
 ---
 name: execution-orchestrator
 description: Autonomous orchestrator that drives plan creation, review, worklog, implementation, and code review to completion using sub-agent calls. Takes a brief+approach and produces verified implementation. Stops only for plan approval or critical decisions.
-harnesses: [opencode, hermes]
+compatibility: hermes
 ---
 
 # Execution Orchestrator
@@ -74,9 +74,7 @@ If the target directory is an epic root:
 ### Step 1: Create Plan
 
 ```
-{{delegate:planner skill=create-plan}}
-Create a detailed plan for the engineering work at [plan directory path]. Read brief.md, approach.md, and findings/ for context.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: planner. Create a detailed plan for the engineering work at [plan directory path]. Read brief.md, approach.md, and findings/ for context. Load and follow your skill 'create-plan' (via skill_view) as the process for this task."}])
 ```
 
 ### Step 2: Review Plan (iterative)
@@ -84,9 +82,7 @@ Create a detailed plan for the engineering work at [plan directory path]. Read b
 Call the plan review sub-agent. Repeat until it reports COMPLETE:
 
 ```
-{{delegate:planReview skill=review-plan}}
-Review the plan at [plan directory path]/plan.md for execution readiness.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: plan-reviewer. Review the plan at [plan directory path]/plan.md for execution readiness. Load and follow your skill 'review-plan' (via skill_view) as the process for this task."}])
 ```
 
 Read the output summary. If status is `NEEDS_ANOTHER_PASS`, call again. Cap at 5 iterations.
@@ -125,9 +121,7 @@ Before creating the worklog, identify the repo task-tracking mechanism from AGEN
 If the plan cites or updates requirements, also identify the repo requirements mechanism from AGENTS.md or repo docs. If no mechanism is documented, ask before allowing canonical requirement edits.
 
 ```
-{{delegate:worklog skill=create-worklog}}
-Create a worklog for the plan at [plan directory path]/plan.md. Include the repo backlog capture policy from AGENTS.md or task-tracking docs if available. If the plan cites or updates requirements, include the repo requirements policy and approved requirement updates.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: worklog. Create a worklog for the plan at [plan directory path]/plan.md. Include the repo backlog capture policy from AGENTS.md or task-tracking docs if available. If the plan cites or updates requirements, include the repo requirements policy and approved requirement updates. Load and follow your skill 'create-worklog' (via skill_view) as the process for this task."}])
 ```
 
 Commit the initialized worklog before starting T1:
@@ -143,7 +137,7 @@ Do not begin task execution with an uncommitted worklog.
 
 For each task in the plan, delegate one implementation, routing by task domain:
 - Backend, logic, infrastructure, data → the implementation delegation below
-- Frontend, UI, components, styling, accessibility → {{note:ui-implementation-target}} instead
+- Frontend, UI, components, styling, accessibility → the worker delegate instead
 
 Non-UI tasks route by the task's **Execution tier** field in `plan.md`: `high` → the
 high-tier implementer, `low` → the low-tier implementer (roles 6 and 7 in
@@ -155,17 +149,13 @@ re-dispatch it once at high tier.
 High tier:
 
 ```
-{{delegate:executeTaskHigh skill=execute-task}}
-Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: worker-high. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow your skill 'execute-task' (via skill_view) as the process for this task."}])
 ```
 
 Low tier:
 
 ```
-{{delegate:executeTaskLow skill=execute-task}}
-Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: worker-low. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow your skill 'execute-task' (via skill_view) as the process for this task."}])
 ```
 
 **Per-task review (controlled by the plan):**
@@ -178,16 +168,12 @@ To change the choice mid-run, edit the plan's `Task review default` or the task'
 When the review is due, review just that task's committed changes:
 
 ```
-{{delegate:codeReview skill=review-code}}
-Review the most recent commit's changes against the plan at [plan directory path]/plan.md. Focus only on the current task's diff. Separate required fixes from non-blocking suggested backlog items. Check requirement alignment if the plan cites or updates requirements.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: code-reviewer. Review the most recent commit's changes against the plan at [plan directory path]/plan.md. Focus only on the current task's diff. Separate required fixes from non-blocking suggested backlog items. Check requirement alignment if the plan cites or updates requirements. Load and follow your skill 'review-code' (via skill_view) as the process for this task."}])
 ```
 
 If per-task review finds issues, call a fix sub-agent before continuing:
 ```
-{{delegate:fix}}
-Fix the issues found in the code review at [plan directory path]/code_review.md. Address only the open findings from the most recent review. Commit the fix as fix(T<N>): <short description>.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: worker. Fix the issues found in the code review at [plan directory path]/code_review.md. Address only the open findings from the most recent review. Commit the fix as fix(T<N>): <short description>."}])
 ```
 
 Cap per-task fix attempts at 2 per task. Each fix pass must leave no intended changes uncommitted before advancing.
@@ -199,9 +185,7 @@ If per-task review suggests non-blocking backlog items, ask the human whether to
 After all tasks complete:
 
 ```
-{{delegate:codeReview skill=review-code}}
-Review the full implementation against the plan at [plan directory path]/plan.md. Review the complete branch diff. Separate required current-plan fixes from non-blocking suggested backlog items. Check requirement alignment if the repo maintains requirements or the plan cites requirement IDs.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: code-reviewer. Review the full implementation against the plan at [plan directory path]/plan.md. Review the complete branch diff. Separate required current-plan fixes from non-blocking suggested backlog items. Check requirement alignment if the repo maintains requirements or the plan cites requirement IDs. Load and follow your skill 'review-code' (via skill_view) as the process for this task."}])
 ```
 
 ### Step 7: Fix and Re-Review (iterative)
@@ -213,9 +197,7 @@ If code review finds issues:
 4. Repeat until COMPLETE or cap (5 iterations)
 
 ```
-{{delegate:fix}}
-Fix the issues found in [plan directory path]/code_review.md. Address all open Blocker, Critical, and Major findings.
-{{/delegate}}
+delegate_task(tasks=[{goal: "Role: worker. Fix the issues found in [plan directory path]/code_review.md. Address all open Blocker, Critical, and Major findings."}])
 ```
 
 ### Step 8: Complete

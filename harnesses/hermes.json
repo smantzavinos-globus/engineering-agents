@@ -1,0 +1,32 @@
+{
+  "id": "hermes",
+  "compatibility": "hermes",
+  "skillPathPrefix": "~/.hermes/skills/",
+  "delegationStyle": "hermes-delegate",
+  "hiddenSkills": [
+    "configure-pi",
+    "configure-opencode"
+  ],
+  "roles": {
+    "planner": { "role": "planner" },
+    "planReview": { "role": "plan-reviewer" },
+    "approachReview": { "role": "approach-reviewer" },
+    "epicReview": { "role": "epic-reviewer" },
+    "codeReview": { "role": "code-reviewer" },
+    "worklog": { "role": "worklog" },
+    "executeTask": { "role": "worker" },
+    "executeTaskHigh": { "role": "worker-high" },
+    "executeTaskLow": { "role": "worker-low" },
+    "fix": { "role": "worker" },
+    "research": { "role": "researcher" },
+    "researchExternal": { "role": "researcher" },
+    "oracle": { "role": "oracle" }
+  },
+  "notes": {
+    "ui-implementation-target": "the worker delegate",
+    "discovery-design-handoff": "This looks ready for the Design phase. Start a Design session to research the codebase and develop the approach.",
+    "design-execute-standard": "The approach is ready. Create the plan with the create-plan skill, review it with the review-plan skill, and once the human has approved it execute it task-by-task (the execute-task skill per task, sequential with opportunistic parallel dispatch).",
+    "design-execute-epic": "The epic approach and decomposition are ready. Start execution at the child-plan level: the create-plan skill for a child plan, then the execute-task skill per task.",
+    "change-plan-skill": "`create-plan`"
+  }
+}
