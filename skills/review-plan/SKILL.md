@@ -41,7 +41,7 @@ You are a senior engineering reviewer. Your job is to find problems in the plan 
 - No vague "implement the feature" steps
 - Verification class declared for every task
 - `Task review default` declared, and any per-task `Task review` override matches the create-plan criteria (inline: `yes` for contract/characterization tasks, schema/migration/auth/permission changes, cross-package changes, high-tier tasks, and tasks later tasks build on; `no` is acceptable only for low-tier mechanical, docs-only, or fully-command-proven `check` tasks — a `no` on a schema/auth/migration task is a Major finding)
-- `Parallel reviews` choice declared (`single` or `multi-model`) — if `multi-model`, the plan's review rounds run 2–3 pi invocations with distinct `--provider`/`--model` flags and DISTINCT session ids (fresh ids per reviewer, never the author's), merged into one review file with per-reviewer attribution
+- `Parallel reviews` choice declared (`dual` or `multi-model`) — `dual` rounds run two reviewers in distinct fresh sessions; if `multi-model`, the plan's review rounds run 2–3 pi invocations with distinct `--provider`/`--model` flags and DISTINCT session ids (fresh ids per reviewer, never the author's), merged into one review file with per-reviewer attribution
 - Verification commands reference canonical repo docs
 
 ### Coverage completeness

@@ -82,7 +82,9 @@ Each `harnesses/<id>.json` declares:
 - `skillPathPrefix` — where skills live on that harness (used when a named-subagent delegation embeds a "read your skill file at …" instruction).
 - `delegationStyle` — `pi-subagent`, `opencode-task`, or `hermes-pi` (Hermes
   renders `pi -p --session-id <plan-slug>-<stage>[-review-<N>] --name "<role>"
-  "<prompt>"` — Hermes agents drive pi subprocesses as their standard mode;
+  --model <model-for-ROLE> --skill <skills-dir>/<skill> "<prompt>"`; the
+  orchestrator fills the model from the repo's role mapping and the skill path
+  from its own store — Hermes agents drive pi subprocesses as their standard mode;
   reviews always get fresh session ids, never the author's. Hermes agents
   pick up skills by syncing `dist/skills/hermes/` into their own stores;
   see the `skill-sync` skill).

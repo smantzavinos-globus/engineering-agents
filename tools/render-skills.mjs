@@ -144,15 +144,23 @@ function renderDelegate(harness, skillName, role, skill, prompt) {
     // agent fills at invocation (<plan-slug>-<stage>[-review-<N>] per the
     // convention; reviews ALWAYS get a fresh id — never the author's). -p
     // is mandatory: without it pi launches the interactive TUI and blocks.
-    // The skill pointer names the installed skill; if the file is not at
-    // the given path the subprocess locates it in its skills directory or
-    // reports back to the orchestrator.
     const roleLine = def.role ? `Role: ${def.role}. ` : '';
     let fullPrompt = `${roleLine}${prompt}`;
     if (skill) {
-      fullPrompt += ` Load and follow the skill '${skill}' (at ${harness.skillPathPrefix}${skill}/SKILL.md, or locate it in your skills directory and report if missing) before working.`;
+      fullPrompt += ` Follow the loaded skill '${skill}' as the process for this work; if it did not load, stop and report.`;
     }
-    return `pi -p --session-id <session-id> --name "${def.role ?? skillName}" ${jsString(fullPrompt)}`;
+    const isReview = /review/i.test(role);
+    const stage = (def.role ?? skillName).replace(/-reviewer$/, '').replace(/^worker(-high|-low)?$/, 'task-<N>').replace(/^planner$/, 'plan').replace(/^researcher$/, 'research-<topic>');
+    const sid = isReview ? `<plan-slug>-${stage}-review-<N>` : `<plan-slug>-${stage}`;
+    if (isReview) fullPrompt += ' (Fresh session: never reuse the author\'s session id.)';
+    // --model: pi has no role roster, so the tier/role is selected by model.
+    // <model-for-ROLE> is resolved from the repo's role->model mapping
+    // (AGENTS.md roles table / .pi/settings.json agentOverrides).
+    // --skill: load the stage skill directly by path; <skills-dir> is the
+    // orchestrator's real skill store (Hermes stores may nest by category).
+    const modelArg = def.role ? ` --model <model-for-${def.role}>` : '';
+    const skillArg = skill ? ` --skill ${harness.skillPathPrefix}${skill}` : '';
+    return `pi -p --session-id ${sid} --name "${def.role ?? skillName}"${modelArg}${skillArg} ${jsString(fullPrompt)}`;
   }
   if (harness.delegationStyle === 'hermes-delegate') {
     // Hermes agents delegate via delegate_task(tasks=[{goal, context}]).

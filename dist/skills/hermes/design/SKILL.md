@@ -55,7 +55,7 @@ Ask the human to confirm before starting research.
 For each approved topic, call a research sub-agent:
 
 ```
-pi -p --session-id <session-id> --name "researcher" "Role: researcher. Research [topic]. Plan directory: [path]. Write findings to findings/[filename].md Load and follow the skill 'research' (at ~/.hermes/skills/research/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-research-<topic> --name "researcher" --model <model-for-researcher> --skill <skills-dir>/research "Role: researcher. Research [topic]. Plan directory: [path]. Write findings to findings/[filename].md Follow the loaded skill 'research' as the process for this work; if it did not load, stop and report."
 ```
 
 Each research call produces one focused findings file.
@@ -97,7 +97,7 @@ Do NOT stop after `approach.md` for epics. An epic is not ready for execution un
 After writing approach.md, run the approach review:
 
 ```
-pi -p --session-id <session-id> --name "approach-reviewer" "Role: approach-reviewer. Review the approach at [plan directory path]/approach.md for architectural soundness and brief alignment. Load and follow the skill 'review-approach' (at ~/.hermes/skills/review-approach/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-approach-review-<N> --name "approach-reviewer" --model <model-for-approach-reviewer> --skill <skills-dir>/review-approach "Role: approach-reviewer. Review the approach at [plan directory path]/approach.md for architectural soundness and brief alignment. Follow the loaded skill 'review-approach' as the process for this work; if it did not load, stop and report. (Fresh session: never reuse the author's session id.)"
 ```
 
 Iterate until status is COMPLETE (max 3 passes). Fix issues between passes.
@@ -106,7 +106,7 @@ Iterate until status is COMPLETE (max 3 passes). Fix issues between passes.
 After writing `epic.md`, run the epic decomposition review:
 
 ```
-pi -p --session-id <session-id> --name "epic-reviewer" "Role: epic-reviewer. Review the epic decomposition at [plan directory path]/epic.md for workstream completeness, sequencing, preparatory work, and child-plan readiness. Load and follow the skill 'review-epic' (at ~/.hermes/skills/review-epic/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-epic-review-<N> --name "epic-reviewer" --model <model-for-epic-reviewer> --skill <skills-dir>/review-epic "Role: epic-reviewer. Review the epic decomposition at [plan directory path]/epic.md for workstream completeness, sequencing, preparatory work, and child-plan readiness. Follow the loaded skill 'review-epic' as the process for this work; if it did not load, stop and report. (Fresh session: never reuse the author's session id.)"
 ```
 
 Iterate until status is COMPLETE (max 3 passes). Fix issues between passes.
@@ -157,13 +157,13 @@ If research or design reveals that durable requirements are missing, unclear, or
 Delegate codebase research to a subagent:
 
 ```
-pi -p --session-id <session-id> --name "researcher" "Role: researcher. Research [specific topic]. Read the brief at [path/brief.md] for context. Write findings to [path/findings/filename.md]. Load and follow the skill 'research' (at ~/.hermes/skills/research/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-research-<topic> --name "researcher" --model <model-for-researcher> --skill <skills-dir>/research "Role: researcher. Research [specific topic]. Read the brief at [path/brief.md] for context. Write findings to [path/findings/filename.md]. Follow the loaded skill 'research' as the process for this work; if it did not load, stop and report."
 ```
 
 Delegate external/web research to a subagent:
 
 ```
-pi -p --session-id <session-id> --name "researcher" "Role: researcher. Research [specific topic] using web search and external sources. Write findings to [path/findings/filename.md]. Load and follow the skill 'research' (at ~/.hermes/skills/research/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-research-<topic> --name "researcher" --model <model-for-researcher> --skill <skills-dir>/research "Role: researcher. Research [specific topic] using web search and external sources. Write findings to [path/findings/filename.md]. Follow the loaded skill 'research' as the process for this work; if it did not load, stop and report."
 ```
 
 You can delegate multiple independent research tasks before synthesizing findings.

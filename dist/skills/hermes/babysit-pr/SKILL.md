@@ -1,7 +1,7 @@
 ---
 name: babysit-pr
 description: "Use when babysitting a PR. Watch, fix, reply, re-review."
-harnesses: [pi, hermes]
+compatibility: hermes
 version: 0.1.0
 ---
 

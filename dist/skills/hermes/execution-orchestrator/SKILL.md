@@ -78,7 +78,7 @@ If the target directory is an epic root:
 ### Step 1: Create Plan
 
 ```
-pi -p --session-id <session-id> --name "planner" "Role: planner. Create a detailed plan for the engineering work at [plan directory path]. Read brief.md, approach.md, and findings/ for context. Load and follow the skill 'create-plan' (at ~/.hermes/skills/create-plan/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-plan --name "planner" --model <model-for-planner> --skill <skills-dir>/create-plan "Role: planner. Create a detailed plan for the engineering work at [plan directory path]. Read brief.md, approach.md, and findings/ for context. Follow the loaded skill 'create-plan' as the process for this work; if it did not load, stop and report."
 ```
 
 ### Step 2: Review Plan (iterative)
@@ -86,7 +86,7 @@ pi -p --session-id <session-id> --name "planner" "Role: planner. Create a detail
 Call the plan review sub-agent. Repeat until it reports COMPLETE:
 
 ```
-pi -p --session-id <session-id> --name "plan-reviewer" "Role: plan-reviewer. Review the plan at [plan directory path]/plan.md for execution readiness. Load and follow the skill 'review-plan' (at ~/.hermes/skills/review-plan/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-plan-review-<N> --name "plan-reviewer" --model <model-for-plan-reviewer> --skill <skills-dir>/review-plan "Role: plan-reviewer. Review the plan at [plan directory path]/plan.md for execution readiness. Follow the loaded skill 'review-plan' as the process for this work; if it did not load, stop and report. (Fresh session: never reuse the author's session id.)"
 ```
 
 Read the output summary. If status is `NEEDS_ANOTHER_PASS`, call again. Cap at 5 iterations.
@@ -125,7 +125,7 @@ Before creating the worklog, identify the repo task-tracking mechanism from AGEN
 If the plan cites or updates requirements, also identify the repo requirements mechanism from AGENTS.md or repo docs. If no mechanism is documented, ask before allowing canonical requirement edits.
 
 ```
-pi -p --session-id <session-id> --name "worklog" "Role: worklog. Create a worklog for the plan at [plan directory path]/plan.md. Include the repo backlog capture policy from AGENTS.md or task-tracking docs if available. If the plan cites or updates requirements, include the repo requirements policy and approved requirement updates. Load and follow the skill 'create-worklog' (at ~/.hermes/skills/create-worklog/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-worklog --name "worklog" --model <model-for-worklog> --skill <skills-dir>/create-worklog "Role: worklog. Create a worklog for the plan at [plan directory path]/plan.md. Include the repo backlog capture policy from AGENTS.md or task-tracking docs if available. If the plan cites or updates requirements, include the repo requirements policy and approved requirement updates. Follow the loaded skill 'create-worklog' as the process for this work; if it did not load, stop and report."
 ```
 
 Commit the initialized worklog before starting T1:
@@ -153,13 +153,13 @@ re-dispatch it once at high tier.
 High tier:
 
 ```
-pi -p --session-id <session-id> --name "worker-high" "Role: worker-high. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow the skill 'execute-task' (at ~/.hermes/skills/execute-task/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-task-<N> --name "worker-high" --model <model-for-worker-high> --skill <skills-dir>/execute-task "Role: worker-high. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Follow the loaded skill 'execute-task' as the process for this work; if it did not load, stop and report."
 ```
 
 Low tier:
 
 ```
-pi -p --session-id <session-id> --name "worker-low" "Role: worker-low. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow the skill 'execute-task' (at ~/.hermes/skills/execute-task/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-task-<N> --name "worker-low" --model <model-for-worker-low> --skill <skills-dir>/execute-task "Role: worker-low. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Follow the loaded skill 'execute-task' as the process for this work; if it did not load, stop and report."
 ```
 
 **Per-task review (controlled by the plan):**
@@ -172,12 +172,12 @@ To change the choice mid-run, edit the plan's `Task review default` or the task'
 When the review is due, review just that task's committed changes:
 
 ```
-pi -p --session-id <session-id> --name "code-reviewer" "Role: code-reviewer. Review the most recent commit's changes against the plan at [plan directory path]/plan.md. Focus only on the current task's diff. Separate required fixes from non-blocking suggested backlog items. Check requirement alignment if the plan cites or updates requirements. Load and follow the skill 'review-code' (at ~/.hermes/skills/review-code/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-code-review-<N> --name "code-reviewer" --model <model-for-code-reviewer> --skill <skills-dir>/review-code "Role: code-reviewer. Review the most recent commit's changes against the plan at [plan directory path]/plan.md. Focus only on the current task's diff. Separate required fixes from non-blocking suggested backlog items. Check requirement alignment if the plan cites or updates requirements. Follow the loaded skill 'review-code' as the process for this work; if it did not load, stop and report. (Fresh session: never reuse the author's session id.)"
 ```
 
 If per-task review finds issues, call a fix sub-agent before continuing:
 ```
-pi -p --session-id <session-id> --name "worker" "Role: worker. Fix the issues found in the code review at [plan directory path]/code_review.md. Address only the open findings from the most recent review. Commit the fix as fix(T<N>): <short description>."
+pi -p --session-id <plan-slug>-task-<N> --name "worker" --model <model-for-worker> "Role: worker. Fix the issues found in the code review at [plan directory path]/code_review.md. Address only the open findings from the most recent review. Commit the fix as fix(T<N>): <short description>."
 ```
 
 Cap per-task fix attempts at 2 per task. Each fix pass must leave no intended changes uncommitted before advancing.
@@ -189,7 +189,7 @@ If per-task review suggests non-blocking backlog items, ask the human whether to
 After all tasks complete:
 
 ```
-pi -p --session-id <session-id> --name "code-reviewer" "Role: code-reviewer. Review the full implementation against the plan at [plan directory path]/plan.md. Review the complete branch diff. Separate required current-plan fixes from non-blocking suggested backlog items. Check requirement alignment if the repo maintains requirements or the plan cites requirement IDs. Load and follow the skill 'review-code' (at ~/.hermes/skills/review-code/SKILL.md, or locate it in your skills directory and report if missing) before working."
+pi -p --session-id <plan-slug>-code-review-<N> --name "code-reviewer" --model <model-for-code-reviewer> --skill <skills-dir>/review-code "Role: code-reviewer. Review the full implementation against the plan at [plan directory path]/plan.md. Review the complete branch diff. Separate required current-plan fixes from non-blocking suggested backlog items. Check requirement alignment if the repo maintains requirements or the plan cites requirement IDs. Follow the loaded skill 'review-code' as the process for this work; if it did not load, stop and report. (Fresh session: never reuse the author's session id.)"
 ```
 
 ### Step 7: Fix and Re-Review (iterative)
@@ -201,7 +201,7 @@ If code review finds issues:
 4. Repeat until COMPLETE or cap (5 iterations)
 
 ```
-pi -p --session-id <session-id> --name "worker" "Role: worker. Fix the issues found in [plan directory path]/code_review.md. Address all open Blocker, Critical, and Major findings."
+pi -p --session-id <plan-slug>-task-<N> --name "worker" --model <model-for-worker> "Role: worker. Fix the issues found in [plan directory path]/code_review.md. Address all open Blocker, Critical, and Major findings."
 ```
 
 ### Step 8: Complete
