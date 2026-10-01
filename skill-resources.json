@@ -78,5 +78,23 @@
       "source": "docs/hermes/execution-modes.md",
       "target": "references/execution-modes.md"
     }
+  ],
+  "assess-repo": [
+    {
+      "source": "docs/references/task-tracking.md",
+      "target": "references/task-tracking.md"
+    },
+    {
+      "source": "docs/references/requirements.md",
+      "target": "references/requirements.md"
+    },
+    {
+      "source": "docs/references/pr-review.md",
+      "target": "references/pr-review.md"
+    },
+    {
+      "source": "docs/references/agent-roles.md",
+      "target": "references/agent-roles.md"
+    }
   ]
 }
