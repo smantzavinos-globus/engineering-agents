@@ -133,5 +133,89 @@ check  "$OUT" "would spawn babysit for o/r#8" "CI gate: red at READY head with n
 OUT="$(run PR8_LABEL=pr:babysat PR8_SESSION=20260101_chat PR8_HEARTBEAT="$(date -u +%Y-%m-%dT%H:%M:%SZ)" CI_ROLLUP=red GH_BIN="$BOT")"
 refute "$OUT" "would spawn babysit for o/r#8" "CI gate: chat-started claim gets no sweep twin"
 
+
+# Mentions: `@h review` -> Reviewer; any other mention -> a babysit round (also under a
+# sweep-owned claim, and from inline review threads). A handle-authored comment counts only on a
+# shared account and only without a pipeline marker.
+MEN="$TMP/gh-men"
+cat > "$MEN" <<'EOF'
+#!/usr/bin/env bash
+pr='{"number":9,"title":"mention","headRefName":"item/9","headRefOid":"9999999999999999999999999999999999999999","labels":[{"name":"pr:ready-merge"}%s],"isDraft":false}'
+case "${M_CLAIM:-none}" in
+  owned) L=',{"name":"pr:babysat"}' ;;
+  *) L='' ;;
+esac
+case "$*" in
+  "pr list"*) printf "[$pr]" "$L" ;;
+  *"issues/9/comments"*)
+    C='[{"id":90,"user":{"login":"agent"},"body":"<!-- pr-review verdict=READY head=9999999999999999999999999999999999999999 -->"}'
+    [ "${M_CLAIM:-none}" = owned ] && C="$C,{\"id\":91,\"user\":{\"login\":\"agent\"},\"body\":\"babysit: session=babysit-pr-x heartbeat=2000-01-01T00:00:00Z\"}"
+    [ -n "${M_BODY:-}" ] && C="$C,{\"id\":92,\"user\":{\"login\":\"${M_USER:-human}\"},\"body\":\"$M_BODY\"}"
+    echo "$C]" ;;
+  *"pulls/9/comments"*)
+    if [ -n "${M_INLINE:-}" ]; then echo "[{\"id\":5,\"user\":{\"login\":\"human\"},\"body\":\"$M_INLINE\"}]"; else echo '[]'; fi ;;
+  *) echo '[]' ;;
+esac
+EOF
+chmod +x "$MEN"
+mrun() { run PR_AGENT_HANDLE=agent GH_BIN="$MEN" "$@"; }
+OUT="$(M_BODY='@agent please rename the helper' mrun)"
+check  "$OUT" "would spawn babysit for o/r#9" "mention: a free-form instruction dispatches a babysit round"
+refute "$OUT" "would spawn review for o/r#9" "mention: a free-form instruction does not dispatch the Reviewer"
+OUT="$(M_BODY='@agent review' mrun)"
+check  "$OUT" "would spawn review for o/r#9" "mention: '@h review' dispatches the Reviewer"
+refute "$OUT" "would spawn babysit for o/r#9" "mention: '@h review' does not dispatch a babysit round"
+OUT="$(M_BODY='@agent please rename the helper' M_CLAIM=owned mrun)"
+check  "$OUT" "would spawn babysit for o/r#9" "mention: runs under a sweep-owned claim"
+OUT="$(M_INLINE='@agent is this safe?' mrun)"
+check  "$OUT" "would spawn babysit for o/r#9" "mention: an inline review-thread mention dispatches a babysit round"
+OUT="$(M_USER=agent M_BODY='@agent please rename the helper' mrun)"
+refute "$OUT" "would spawn babysit for o/r#9" "shared account off: a handle-authored comment is a self-mention"
+OUT="$(M_USER=agent M_BODY='@agent please rename the helper' mrun PR_SHARED_ACCOUNT=1)"
+check  "$OUT" "would spawn babysit for o/r#9" "shared account: an unmarked handle-authored comment is a human mention"
+OUT="$(M_USER=agent M_BODY='done <!-- babysit-reply --> cc @agent' mrun PR_SHARED_ACCOUNT=1)"
+refute "$OUT" "would spawn babysit for o/r#9" "shared account: a marked agent comment never triggers"
+
+
+# A babysit round that resolved threads without pushing (status FIXED, same head) gets one fresh
+# review of that head; without such a round, a finished review at the head is not repeated.
+RES="$TMP/gh-res"
+cat > "$RES" <<'EOF'
+#!/usr/bin/env bash
+case "$*" in
+  "pr list"*) echo '[{"number":10,"title":"resolved","headRefName":"item/10","headRefOid":"1010101010101010101010101010101010101010","labels":[{"name":"pr:re-review"}],"isDraft":false}]' ;;
+  *) echo '[]' ;;
+esac
+EOF
+chmod +x "$RES"
+rm -rf "$TMP/state"; mkdir -p "$TMP/state/results"
+H=1010101010101010101010101010101010101010
+printf '%s\n' "{\"ts\":100,\"kind\":\"review\",\"repo\":\"o/r\",\"pr\":10,\"head\":\"$H\",\"tag\":\"rev1\"}" > "$TMP/state/dispatches.jsonl"
+echo '{"verdict":"FIX"}' > "$TMP/state/results/rev1.json"
+OUT="$(run GH_BIN="$RES")"
+refute "$OUT" "would spawn review for o/r#10" "resolve-only: a finished review at this head is not repeated"
+printf '%s\n' "{\"ts\":200,\"kind\":\"babysit\",\"repo\":\"o/r\",\"pr\":10,\"head\":\"$H\",\"tag\":\"bab1\"}" >> "$TMP/state/dispatches.jsonl"
+echo '{"status":"FIXED"}' > "$TMP/state/results/bab1.json"
+OUT="$(run GH_BIN="$RES")"
+check  "$OUT" "would spawn review for o/r#10" "resolve-only: a FIXED babysit round with no push gets one re-review of the same head"
+echo '{"status":"RELEASED"}' > "$TMP/state/results/bab1.json"
+OUT="$(run GH_BIN="$RES")"
+refute "$OUT" "would spawn review for o/r#10" "resolve-only: a round that did not fix anything does not trigger a re-review"
+rm -rf "$TMP/state"
+
+
+# Both prompt templates must render with the placeholders spawn() supplies (a stray brace would
+# crash every dispatch, and DRY mode never renders them).
+if "$PY" - "$ROOT/scripts/pr-sweep-prompts" <<'PYEOF'
+import sys, pathlib
+kw = dict(repo="o/r", number=1, head="a" * 40, short_head="aaaaaaa", title="t", branch="b", checkout="/c",
+          hermes="h", handle="agent", result_file="/r", tag="t", fix_loops=0, bot_rounds=0, bot_cap=5,
+          trigger="mention", mention_ref="r5")
+for k in ("review", "babysit"):
+    (pathlib.Path(sys.argv[1]) / f"{k}.md").read_text().format(**kw)
+PYEOF
+then PASS=$((PASS+1)); echo "  PASS: prompt templates render with spawn()'s placeholders"
+else FAIL=$((FAIL+1)); echo "  FAIL: a prompt template does not render" >&2; fi
+
 printf '\nResults: %d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

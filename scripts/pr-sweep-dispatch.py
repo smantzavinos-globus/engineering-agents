@@ -13,8 +13,12 @@ Install: copy this file and pr-sweep-prompts/ into $HERMES_HOME/scripts/, then
 
 Environment:
   PR_SWEEP_REPOS          space-separated owner/repo list (required; PR_SWEEP_REPO also accepted)
-  PR_AGENT_HANDLE         handles whose mentions trigger: `@h review`, `@h fix` / `@h babysit`
+  PR_AGENT_HANDLE         handles whose mentions trigger: `@h review` dispatches the Reviewer; any
+                          other mention (`@h <instruction>`) dispatches an author-side babysit round
                           (space/comma-separated list: the account handle AND its natural aliases)
+  PR_SHARED_ACCOUNT       1 when the human and the agent post as the same login: a comment by a
+                          handle counts as a mention only if it carries no pipeline marker
+                          (`<!-- ... -->` or a `babysit:` claim line)
   PR_SWEEP_CHECKOUT_ROOT  directory holding local checkouts named by repo (default ~/repos)
   PR_REVIEW_MODEL, PR_REVIEW_REASONING (medium), PR_REVIEW_SKILLS (pull-request)
   PR_BABYSIT_MODEL, PR_BABYSIT_SKILLS (babysit-pr)
@@ -58,6 +62,7 @@ STALE_MIN = int(ENV.get("PR_BABYSIT_STALE_MIN", "60"))
 BOT_REVIEWERS = tuple(ENV.get("PR_BOT_REVIEWERS", "copilot-pull-request-reviewer[bot]").split())
 BOT_CAP = int(ENV.get("PR_BOT_REVIEW_CAP", "5"))
 STUCK_MIN = int(ENV.get("PR_REVIEW_STUCK_MIN", "90"))
+SHARED_ACCOUNT = ENV.get("PR_SHARED_ACCOUNT", "") not in ("", "0")
 DRY = bool(ENV.get("PR_SWEEP_DRY"))
 HERMES = ENV.get("HERMES_BIN", "hermes")
 GH = ENV.get("GH_BIN", "gh")
@@ -165,11 +170,18 @@ def ci_round_due(rollup, handled_keys, stamp_head, head):
     return [], key, True
 
 
-def mentions(comments, handles, seen_ids):
+def has_marker(body):
+    """True for agent-authored comments: an HTML pipeline marker or a babysit claim line."""
+    return "<!--" in body or bool(HEARTBEAT_RE.search(body))
+
+
+def mentions(comments, handles, seen_ids, shared=SHARED_ACCOUNT):
     """Newest unprocessed (review_comment, babysit_comment) across the handle vocabulary.
 
-    `fix` and `babysit` both mean an author round. A comment is ignored when the
-    author IS one of the configured handles (self-mention) — not just the primary.
+    `@h review` is the only phrase that dispatches the Reviewer; any other mention
+    is an instruction for the author-side babysit round. A comment by one of the
+    configured handles is ignored (self-mention) unless the account is shared with
+    the human (`shared`) and the comment carries no pipeline marker.
     """
     review = babysit = None
     if not handles:
@@ -177,16 +189,26 @@ def mentions(comments, handles, seen_ids):
     tags = [f"@{h}" for h in handles]
     for c in comments:
         body = (c.get("body") or "").lower()
-        if c["id"] in seen_ids or c["user"]["login"].lower() in handles:
+        if c["id"] in seen_ids:
+            continue
+        if c["user"]["login"].lower() in handles and not (shared and not has_marker(body)):
             continue
         hit = next((t for t in tags if t in body), None)
         if hit is None:
             continue
-        if f"{hit} babysit" in body or f"{hit} fix" in body:
-            babysit = c
-        else:
+        if re.search(re.escape(hit) + r"[\s,:]+review\b", body):
             review = c
+        else:
+            babysit = c
     return review, babysit
+
+
+def fixed_without_push(rec):
+    """A babysit round that handled findings (status FIXED) and left the head unchanged."""
+    try:
+        return json.loads((RESULTS / f"{rec.get('tag')}.json").read_text()).get("status") == "FIXED"
+    except (OSError, ValueError):
+        return False
 
 
 # ---------------------------------------------------------------- side effects
@@ -271,6 +293,9 @@ def sweep_repo(repo, recs, reported):
         labels = [l["name"] for l in pr["labels"]]
         label = state_label(labels)
         comments = gh("api", f"repos/{repo}/issues/{n}/comments?per_page=100")
+        # Inline review-thread comments are mention surfaces too; "r"-prefixed ids keep the two
+        # comment id spaces apart in the dispatch record.
+        inline = [dict(c, id=f"r{c['id']}") for c in gh("api", f"repos/{repo}/pulls/{n}/comments?per_page=100")]
         reviews = gh("api", f"repos/{repo}/pulls/{n}/reviews?per_page=100")
         vs = verdicts(comments)
         last_v = vs[-1] if vs else None
@@ -314,7 +339,7 @@ def sweep_repo(repo, recs, reported):
             label = "pr:ready-merge"
             out.append(f"{repo}#{n}: CI green at the READY head; restored pr:ready-merge.")
 
-        mention_review, mention_babysit = mentions(comments, HANDLES, {r.get("comment_id") for r in mine})
+        mention_review, mention_babysit = mentions(comments + inline, HANDLES, {r.get("comment_id") for r in mine})
 
         claim = claim_state(labels, comments, time.time())
         babysitter_running = any(r["kind"] == "babysit" for r in running)
@@ -330,7 +355,13 @@ def sweep_repo(repo, recs, reported):
         at_head = [r for r in mine if r["kind"] == "review" and r["head"] == head]
         done_at_head = any(has_result(r) for r in at_head)
         fails = sum(1 for r in at_head if r.get("error") or (r.get("pid") and not alive(r["pid"]) and not has_result(r)))
-        want_review = (label in ("pr:ready-review", "pr:re-review") and not done_at_head) or bool(mention_review)
+        # A babysit round that resolved findings without pushing leaves the head unchanged, so no push
+        # demotion fires; the same head is re-reviewed once after such a round.
+        last_review_ts = max((r["ts"] for r in at_head), default=0)
+        babysat_after = label == "pr:re-review" and any(
+            r["kind"] == "babysit" and r["head"] == head and r["ts"] > last_review_ts and fixed_without_push(r)
+            for r in mine)
+        want_review = (label in ("pr:ready-review", "pr:re-review") and (not done_at_head or babysat_after)) or bool(mention_review)
         if label == "pr:in-review" and not reviewer_running and not done_at_head:
             want_review = True  # drift: in-review with nobody working it
         if want_review and not reviewer_running and not pr["isDraft"]:
@@ -373,11 +404,13 @@ def sweep_repo(repo, recs, reported):
                 out.append(f"{repo}#{n}: bot-review cap ({BOT_CAP}) reached; no more bot rounds.")
         fix_round = owned and fix_at_head and not round_done
         bot_round = owned and bot_rev is not None and not fix_round
-        want_babysit = (bool(mention_babysit) and claim == "none") or fix_round or bot_round or ci_round
+        # A mention is an explicit instruction: it runs under no claim or a sweep-owned one, never twinning a chat watcher.
+        mention_round = bool(mention_babysit) and (claim == "none" or owned)
+        want_babysit = mention_round or fix_round or bot_round or ci_round
         if want_babysit and not babysitter_running:
             rec = {"ts": time.time(), "kind": "babysit", "repo": repo, "pr": n, "head": head,
-                   "comment_id": mention_babysit["id"] if mention_babysit else None,
-                   "verdict_id": verdict_id if fix_round or mention_babysit else None,
+                   "comment_id": mention_babysit["id"] if mention_round else None,
+                   "verdict_id": verdict_id if fix_round or mention_round else None,
                    "bot_review_id": bot_rev["id"] if bot_round else None,
                    "bot_review_ids": bot_seen if bot_round else [],
                    "ci_key": ci_key if ci_round else None}
@@ -385,7 +418,8 @@ def sweep_repo(repo, recs, reported):
                 rec["pid"], rec["tag"] = spawn("babysit", repo, pr, head, BABYSIT_MODEL, "medium", BABYSIT_SKILLS,
                                                {"fix_loops": sum(1 for v in vs if v[0] == "FIX"),
                                                 "bot_rounds": len(bot_reviews(reviews)), "bot_cap": BOT_CAP,
-                                                "trigger": "CI red" if ci_round else ("bot review" if bot_round else "verdict")})
+                                                "trigger": "mention" if mention_round else "CI red" if ci_round else ("bot review" if bot_round else "verdict"),
+                                                "mention_ref": str(mention_babysit["id"]) if mention_round else ""})
             except Exception as e:  # noqa: BLE001
                 rec["error"] = str(e)[:300]
             record(recs, rec)
