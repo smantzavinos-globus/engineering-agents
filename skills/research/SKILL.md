@@ -25,7 +25,7 @@ You will receive:
 2. **Explore the codebase** using available tools:
    - `read` — examine specific files
    - `bash` — run `find`, `rg`, `grep`, `ls` for discovery
-   - `web_search` / `fetch_content` — for external library documentation
+   - your harness's web search/fetch tools — for external library documentation
 3. **Document findings** in the specified output file
 
 ## Output Format

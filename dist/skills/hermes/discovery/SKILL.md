@@ -95,7 +95,11 @@ When the human has reached clarity, **you take the lead on creating the brief:**
 3. Write `brief.md` using the template format in [references/brief-template.md](references/brief-template.md)
 4. Include requirement context and requirement questions if the repo maintains requirements
 5. Confirm the file was written and ask the human to review/accept it before moving to Design
-6. After the human accepts the brief, commit `brief.md` and `state.json` (if changed) as `brief: finalize scope for <slug>`
+6. After the human accepts the brief, write `state.json`:
+   `{ "phase": "briefed", "status": "active" }` (this file's `phase` advances
+   through the pipeline: briefed → researching → approached → planning →
+   planned → reviewing → ready → executing; later stages update it). Then
+   commit `brief.md` and `state.json` as `brief: finalize scope for <slug>`
 7. Tell them the next step
 
 Do NOT dump the brief content as chat text and wait for them to tell you to save it. Writing the file IS your job. Do not commit draft brief revisions before human acceptance.

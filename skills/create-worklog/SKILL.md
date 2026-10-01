@@ -21,6 +21,10 @@ You produce the durable execution tracking document that implementation sub-agen
 
 ## Process
 
+0. **Verify the gate** — Read `plan_review.md`; abort unless its latest pass
+   reports zero Blocker/Critical/Major findings AND the human approval is
+   recorded (plan approval is a human gate — if absent, stop and present the
+   plan). Carry the confirmed execution mode into the worklog header.
 1. **Read plan.md** — Extract task list, verification commands, gate policies
 2. **Read repo test docs** — Get exact commands (referenced in AGENTS.md / test architecture docs)
 3. **Read repo task-tracking docs** — Get backlog store, stable ID format, default capture status, and critical-item policy if documented

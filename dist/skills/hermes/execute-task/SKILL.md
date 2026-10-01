@@ -36,6 +36,7 @@ You execute exactly ONE task. After verification, worklog update, and atomic tas
 
 ### Follow the checklist exactly
 The plan provides a specific checklist for this task. Follow it step by step. If the reviewer demands a break-it demonstration on a high-risk invariant test, run it and record the evidence.
+- For `contract`-class tasks: after Green, verify the authored test is UNCHANGED since its authoring commit (`git diff --exit-code <authoring-commit> -- <test-paths>`); a modified frozen test is a gate failure regardless of Green.
 
 ### Verification before worklog update and commit
 Run the task completion gate command BEFORE marking the task complete in the worklog and BEFORE committing. If it fails for reasons related to your task, fix it. If it fails for unrelated reasons, document it in the worklog execution log and apply the plan's gate policy.
@@ -110,7 +111,7 @@ After verification passes and any accepted follow-ups are captured, update workl
 
 - Do not execute multiple tasks
 - Do not skip the TDD cycle
-- Do not skip the break-it check
+- Do not skip a reviewer-demanded break-it demonstration (see task checklist)
 - Do not modify the plan
 - Do not add new tasks to the current plan/worklog task list unless explicitly instructed
 - Do not leave accepted follow-ups only in chat

@@ -21,7 +21,12 @@ on the host between calls, and advances the pipeline.
 
 - **Fresh session per stage by default.** Each planning step, each task
   execution, and each review runs in a new Pi session:
-  `pi --session-id <plan-slug>-task-<N> --name "<stage>" "<prompt>"`.
+  `pi -p --session-id <plan-slug>-<stage>[-<N>] --name "<stage>" "<prompt>"`
+  — one session per stage/task (e.g. `<plan-slug>-research`,
+  `<plan-slug>-plan`, `<plan-slug>-task-1`, `<plan-slug>-task-2`), and
+  reviews always get their own fresh ids suffixed `-review-<N>`
+  (`<plan-slug>-approach-review-1`, `<plan-slug>-code-review-1`) — never
+  the author's id.
   Fresh sessions keep reviewer and implementer contexts independent — the
   same independence the review rules require of agents.
 - **Session reuse is the exception, for small follow-ups.** Continuing the

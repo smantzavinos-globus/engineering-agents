@@ -41,7 +41,8 @@ You are a senior engineering reviewer. Your job is to find problems in the plan 
 - Each checkbox names specific files, behaviors, and commands
 - No vague "implement the feature" steps
 - Verification class declared for every task
-- `Task review default` declared, and any per-task `Task review` override matches the criteria in `create-plan` (a `no` on a schema/auth/migration task is a Major finding)
+- `Task review default` declared, and any per-task `Task review` override matches the create-plan criteria (inline: `yes` for contract/characterization tasks, schema/migration/auth/permission changes, cross-package changes, high-tier tasks, and tasks later tasks build on; `no` is acceptable only for low-tier mechanical, docs-only, or fully-command-proven `check` tasks — a `no` on a schema/auth/migration task is a Major finding)
+- `Parallel reviews` choice declared (`single` or `multi-model`) — if `multi-model`, the plan's review rounds run 2–3 pi invocations with distinct `--provider`/`--model` flags and DISTINCT session ids (fresh ids per reviewer, never the author's), merged into one review file with per-reviewer attribution
 - Verification commands reference canonical repo docs
 
 ### Coverage completeness
@@ -116,7 +117,7 @@ If any significant issues are found (even if fixed in this pass), another review
 
 ## Output
 
-Write or append to `plan_review.md` using the format in [references/review-template.md](references/review-template.md).
+Write or append to `plan_review.md` using the format in [references/review-template.md](references/review-template.md). When the plan selects `multi-model` parallel reviews, run 2–3 review passes on distinct model families with fresh session ids per reviewer, then merge all findings into this one file with per-reviewer attribution.
 
 After completing the review pass, output a summary:
 
