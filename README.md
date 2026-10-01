@@ -208,9 +208,13 @@ pi
 
 ## Usage with Hermes
 
-Hermes agents reference this repo directly (no rendered copies): point the
-agent at the repo and route it to `docs/hermes/README.md` — the skill
-reference map there covers the full pipeline including PR babysitting
+Hermes agents install the rendered Hermes tree into their own skill stores
+and self-manage it: copy `dist/skills/hermes/*` into the agent's skill
+directory (once, by hand — then the `skill-sync` skill keeps it aligned via
+`tools/sync-skills.mjs`). Process entry for any fresh session: the
+`software-development` skill (trigger: "follow the dev process"), which
+routes into the pipeline stage skills. The docs reference map in
+`docs/hermes/README.md` covers the full pipeline including PR babysitting
 (`skills/babysit-pr/SKILL.md`).
 
 ## Usage without Nix
@@ -221,6 +225,7 @@ You can copy the generated trees to any coding agent's configuration directory:
 
 - **Pi**: Copy `dist/skills/pi/*` to `~/.pi/agent/skills/`, agents from `agents/` to `~/.pi/agent/agents/`
 - **OpenCode**: Copy `dist/skills/opencode/*` to `~/.config/opencode/skills/`
+- **Hermes**: Copy `dist/skills/hermes/*` into the agent's skill directory, then keep aligned with the `skill-sync` skill + `tools/sync-skills.mjs`
 - **Claude Code**: Reference rendered skill files from `.claude/` configuration
 
 > In OpenCode, the review and read-only-escalation roles are delegated via task categories rather than dedicated subagents — see [Skill Rendering](docs/skill-rendering.md).

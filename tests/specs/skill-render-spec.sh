@@ -209,17 +209,30 @@ for gone in pi-team-plan pi-team-lead pi-team-worker; do
     fail "${gone} must be absent from the Pi tree"
   fi
 done
+# The sequential pipeline is universal (Spiros ruling on PR#25: the wave
+# approach is no longer used by any harness) — pipeline skills render for
+# every harness. Still harness-scoped: configure-* and the Hermes-process
+# skills (skill-sync, software-development).
 for oc_only in execution-orchestrator execute-task create-worklog \
                 create-plan review-plan review-code; do
-  if [[ ! -e "$REPO_ROOT/dist/skills/pi/${oc_only}" ]]; then
-    pass "${oc_only} is excluded from the Pi tree"
+  if [[ -f "$REPO_ROOT/dist/skills/pi/${oc_only}/SKILL.md" ]] \
+     && [[ -f "$REPO_ROOT/dist/skills/opencode/${oc_only}/SKILL.md" ]] \
+     && [[ -f "$REPO_ROOT/dist/skills/hermes/${oc_only}/SKILL.md" ]]; then
+    pass "${oc_only} renders for every harness (universal pipeline)"
   else
-    fail "${oc_only} (opencode-only) leaked into the Pi tree"
+    fail "${oc_only} must render in all three trees (universal pipeline)"
   fi
-  if [[ -f "$REPO_ROOT/dist/skills/opencode/${oc_only}/SKILL.md" ]]; then
-    pass "${oc_only} is retained in the OpenCode tree"
+done
+for hermes_only in skill-sync software-development; do
+  if [[ -e "$REPO_ROOT/dist/skills/pi/${hermes_only}" || -e "$REPO_ROOT/dist/skills/opencode/${hermes_only}" ]]; then
+    fail "${hermes_only} (hermes-only) leaked into pi/opencode trees"
   else
-    fail "${oc_only} is missing from the OpenCode tree"
+    pass "${hermes_only} is excluded from the pi/opencode trees"
+  fi
+  if [[ -f "$REPO_ROOT/dist/skills/hermes/${hermes_only}/SKILL.md" ]]; then
+    pass "${hermes_only} is present in the Hermes tree"
+  else
+    fail "${hermes_only} is missing from the Hermes tree"
   fi
 done
 

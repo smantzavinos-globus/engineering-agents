@@ -30,9 +30,12 @@ If this document and a canonical doc disagree, the canonical doc wins.
 
 ## Skill-sync checklist
 
-Hermes agents maintain their own native skills. Each agent-side skill must
-cover the corresponding canonical content; diff your skills against this list
-and update yours when the canon changes.
+Superseded by the `skill-sync` skill + `tools/sync-skills.mjs`: agents
+install `dist/skills/hermes/` wholesale and re-align via the standard sync
+procedure (recorded upstream SHA, hash-diff, per-skill dispositions). The
+table below remains as the CONTENT checklist — what each installed skill
+must cover — useful when judging a `locally-modified` disposition or
+writing a `propose-upstream` PR.
 
 | Agent-side skill | Must cover | Canonical source |
 |------------------|------------|------------------|

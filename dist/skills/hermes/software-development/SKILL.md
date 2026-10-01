@@ -15,22 +15,21 @@ intake → BRIEF → RESEARCH → APPROACH → APPROACH REVIEW → PLAN → PLAN
        → (human approval) → WORKLOG → EXECUTE (per-task) → CODE REVIEW → PR REVIEW
 ```
 
-Stage skills BY HARNESS (the stage names above are universal; the skill
-names differ where the pi and OpenCode/Hermes processes diverged — see
-`docs/skill-rendering.md`):
+Stage skills (universal — the same pipeline for every harness):
 
-| Stage | OpenCode + Hermes (sequential pipeline) | pi (wave engine) |
-| --- | --- | --- |
-| Brief | `discovery` / `discover-and-design*` | same |
-| Research | `research` | same |
-| Approach | `design` | same |
-| Plan | `create-plan` | `create-tasks` |
-| Plan review | `review-plan` | `review-tasks` |
-| Worklog | `create-worklog` | (tasks.json carries it) |
-| Execute | `execute-task` / `execution-orchestrator` | wave engine |
-| Code review | `review-code` | `review-diff` |
-| PR | `pull-request` | same |
-| Epic | `review-epic` | same |
+| Stage | Skill |
+| --- | --- |
+| Brief | `discovery` / `discover-and-design*` |
+| Research | `research` |
+| Approach | `design` |
+| Approach review | `review-approach` |
+| Plan | `create-plan` |
+| Plan review | `review-plan` |
+| Worklog | `create-worklog` |
+| Execute | `execute-task` / `execution-orchestrator` |
+| Code review | `review-code` |
+| PR | `pull-request` |
+| Epic layer | `review-epic` |
 
 ## The stage-gate table (NORMATIVE)
 
@@ -48,12 +47,11 @@ single authority; the per-stage skills do not re-litigate it.
 | Code review | task(s) executed, commits landed | `execute-task` first |
 | PR review | code review clean | `review-code` first |
 
-**The failure this gate exists for (real incident, 2026-09-30):** an agent
-with rich chat context wrote `plan.md` directly, skipping brief and
-approach. Chat is decision-CONTENT, not the artifact trail — reviewers then
-have nothing to review the plan AGAINST. Never write a plan from chat
-memory of decisions; write the brief and approach first, even when the
-content already "exists" in the conversation.
+**Artifact precedence:** briefs, approaches, and plans are reviewable
+artifacts — decisions recorded in conversation are CONTENT for those
+artifacts, never a substitute for them. An agent asked to plan work
+verifies the gate artifacts exist on disk first and creates whichever are
+missing, in pipeline order, before any plan is written.
 
 ## Locating yourself
 

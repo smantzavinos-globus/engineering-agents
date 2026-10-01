@@ -1,6 +1,7 @@
 ---
 name: execute-task
 description: Execute exactly one plan task using test-first discipline. Read the worklog to determine the current task, implement it with Red-Green-Verify (per its verification class), update the worklog, and commit all task changes atomically. One task per invocation.
+compatibility: pi
 ---
 
 # Execute Task

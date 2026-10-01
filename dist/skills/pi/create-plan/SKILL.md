@@ -1,6 +1,7 @@
 ---
 name: create-plan
 description: Create a detailed, executable engineering plan with dependency-ordered tasks and TDD checklists from an existing brief and approach. Produces plan.md in the plan directory. Use after research and approach are complete.
+compatibility: pi
 ---
 
 # Create Plan
