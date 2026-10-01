@@ -851,3 +851,16 @@ Repos should periodically review backlog state so captured work remains useful:
 - Close or update items completed by plans
 - Ensure old follow-ups still have enough context to be actionable
 - Ensure TODO comments that represent real follow-up work reference backlog IDs
+
+### Configuring org-level projects: prefer raw GraphQL over `gh project` subcommands
+
+`gh project field-create --single-select-options` and `gh project item-edit --single-select-option-id` are unreliable for org-owned projects (`gh: unknown owner type` and similar errors are common even with correct scopes) and `--single-select-options` wants a plain comma-separated option list, not JSON, so both editing an existing field's options and doing anything beyond trivial field creation should go through raw GraphQL mutations instead:
+
+```bash
+# Discover project id + existing field ids/options (single-select fields are the ones with `options`)
+gh api graphql -f query='{organization(login:"<owner>"){projectV2(number:<n>){id fields(first:30){nodes{... on ProjectV2FieldCommon{name dataType} ... on ProjectV2SingleSelectField{id name options{id name}}}}}}}'
+```
+
+Then drive `updateProjectV2Field` (replace an existing single-select field's options — this is the only way to rename/add/remove Status options, since `field-create` only makes new fields), `createProjectV2Field` (new single-select fields), `addProjectV2ItemById`, `updateProjectV2ItemFieldValue`, and `linkProjectV2ToRepository` directly. Write the mutations to a `.py` file calling `gh api graphql --input -` with a JSON-encoded body (piped via stdin, not `-f`/heredoc flags — `-f` treats structured values as strings and fails with "Expected ... to be a key-value object"), then run that file with `terminal`, not `execute_code` — the `execute_code` sandbox does not inherit the shell's `gh` auth/token and every `gh` call there fails with "please run gh auth login" even when `gh auth status` succeeds in `terminal`.
+
+Before wiring the real backlog migration into a live project, run one smoke-test cycle end to end: create a throwaway issue, add it to the project, set two fields, list items to confirm the value stuck, then remove the project item and close the issue (`--reason "not planned"`). Org repos often restrict `gh issue delete` to org owners even for an admin-permission viewer, so closing (not deleting) is the reliable cleanup step.

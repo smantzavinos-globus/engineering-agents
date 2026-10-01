@@ -27,9 +27,9 @@ The user may combine these: "Assess this repo and fix what's missing" or "Update
 
 Read these references to understand what a well-configured repo looks like:
 - [references/repo-requirements.md](references/repo-requirements.md) — documentation structure requirements
-- [../../references/standard-test-levels.md](../../references/standard-test-levels.md) — test level definitions repos must map to
-- [../../references/task-tracking.md](../../references/task-tracking.md) — backlog/task-tracking hooks repos must map to
-- [../../references/requirements.md](../../references/requirements.md) — requirements-handling hooks repos may map to
+- [references/standard-test-levels.md](references/standard-test-levels.md) — test level definitions repos must map to
+- [references/task-tracking.md](references/task-tracking.md) — backlog/task-tracking hooks repos must map to
+- [references/requirements.md](references/requirements.md) — requirements-handling hooks repos may map to
 - [references/agent-configuration.md](references/agent-configuration.md) — model/agent setup per repo
 
 ### 2. Scan the Repository
@@ -82,12 +82,12 @@ For documents that exist, evaluate:
 - **Per-directory AGENTS.md:** Do they include patterns AND anti-patterns, or just brief descriptions?
 - **Agent config:** Do model choices match the repo's domain? (Frontend repo should have UI-strong workers) Is there a distinct agent per implementer tier (`worker-high`, `worker-low`) so tier routing needs no per-dispatch model? Do override model IDs exist in the provider catalog of the deployments that run this repo? Do critical agents state a manual fallback order for the providers this repo uses (`fallbackModels` is unsupported)? Settings-level `subagents.agentOverrides` replace agent-file values; see the agent configuration guide.
 - **Operational hooks:** For each task-tracking and requirements hook, is the implementation agent-executable? A good hook names the exact file/command, ID rule, required fields, safe read operations, mutating operations, approval boundary, and fallback. A vague concept is not enough.
-- **Task tracking:** Does the repo define every required task-tracking hook from `../../references/task-tracking.md`: backlog store, create item, stable ID, reference format, source backlink format, list inbox/untriaged, list `Up next`, mark ready/done/canceled/deferred/blocked, and critical/blocking policy? Is `Up next` human-controlled or explicitly delegated? Are agents allowed to create items directly or must they ask?
-- **Delivery pipeline (if adopted):** Does the task-tracking doc also map the pipeline hooks from `../../references/task-tracking.md` (Awaiting approval, Stage/Autonomy, claim, gate comment, item–PR link), and does the repo record which scheduled jobs run?
+- **Task tracking:** Does the repo define every required task-tracking hook from `references/task-tracking.md`: backlog store, create item, stable ID, reference format, source backlink format, list inbox/untriaged, list `Up next`, mark ready/done/canceled/deferred/blocked, and critical/blocking policy? Is `Up next` human-controlled or explicitly delegated? Are agents allowed to create items directly or must they ask?
+- **Delivery pipeline (if adopted):** Does the task-tracking doc also map the pipeline hooks from `references/task-tracking.md` (Awaiting approval, Stage/Autonomy, claim, gate comment, item–PR link), and does the repo record which scheduled jobs run?
 - **Requirements posture:** Is the repo's requirements posture explicit? Report one of: maintains requirements, explicitly no separate requirements system, unclear, or likely needed but missing.
-- **Requirements:** If the repo maintains requirements, does it define every required requirements hook from `../../references/requirements.md`: requirements store, actor/persona definitions, use case definitions, workflow/scenario definitions, functional requirements, non-functional requirements, operational requirements, stable IDs, reference format, test citation format, traceability rules, apply approved requirement changes, retire/change requirements, validation/query commands if any, and approval policy? Are mutating operations and human approval boundaries clear?
-- **PR review process:** Does the repo have a `pr-review-hooks.md` manifest at its root answering the required hooks from `../../references/pr-review.md`: review inputs, local review rules, verification commands, evidence captures, PR tracking, and merge gate? Are the verification rows runnable commands and is the merge gate explicit?
-- **Agent role → model assignment:** Does the repo define which model fills each agent role from `../../references/agent-roles.md` (orchestrator, researcher, planner/contract author, reviewer, fresh reviewer, implementer high/low, optional visual implementer)? Check: every role has a named model or an explicit "default" record; the implementer tier mapping is stated as `worker-high` / `worker-low` overrides; a manual fallback order is stated for implementers/planner/reviewer (not `fallbackModels`, which is unsupported); the mapping lives in the repo's agent-configuration surface and is auditable. A repo that cannot state its role→model mapping fails assessment.
+- **Requirements:** If the repo maintains requirements, does it define every required requirements hook from `references/requirements.md`: requirements store, actor/persona definitions, use case definitions, workflow/scenario definitions, functional requirements, non-functional requirements, operational requirements, stable IDs, reference format, test citation format, traceability rules, apply approved requirement changes, retire/change requirements, validation/query commands if any, and approval policy? Are mutating operations and human approval boundaries clear?
+- **PR review process:** Does the repo have a `pr-review-hooks.md` manifest at its root answering the required hooks from `references/pr-review.md`: review inputs, local review rules, verification commands, evidence captures, PR tracking, and merge gate? Are the verification rows runnable commands and is the merge gate explicit?
+- **Agent role → model assignment:** Does the repo define which model fills each agent role from `references/agent-roles.md` (orchestrator, researcher, planner/contract author, reviewer, fresh reviewer, implementer high/low, optional visual implementer)? Check: every role has a named model or an explicit "default" record; the implementer tier mapping is stated as `worker-high` / `worker-low` overrides; a manual fallback order is stated for implementers/planner/reviewer (not `fallbackModels`, which is unsupported); the mapping lives in the repo's agent-configuration surface and is auditable. A repo that cannot state its role→model mapping fails assessment.
 - **Tool availability:** For GitHub Projects, CLIs, or other external systems, are required tools installed/authenticated and are fallback procedures documented when access is unavailable?
 
 ### 4. Report or Act
@@ -96,7 +96,7 @@ For documents that exist, evaluate:
 
 **If setting up:** Create the missing files:
 - `.pi/settings.json` with `subagents.agentOverrides` appropriate to the repo's stack
-- A role→model assignment covering every role in `../../references/agent-roles.md` (roles, tiers, manual fallback order) in the repo's agent-configuration surface
+- A role→model assignment covering every role in `references/agent-roles.md` (roles, tiers, manual fallback order) in the repo's agent-configuration surface
 - `plans/` directory (or `docs/engineering/plans/`)
 - Test architecture skeleton populated from discovered commands (package.json, Makefile, etc.)
 - Task-tracking skeleton if missing. Ensure the skeleton maps every required task-tracking hook with an operations table, item template, source backlink rule, and lifecycle transitions. Offer the user:
@@ -107,7 +107,7 @@ For documents that exist, evaluate:
   1. Simple Markdown requirements (`docs/requirements.md`)
   2. Existing requirements CLI/tool integration
   3. No requirements system yet; document that requirements are not maintained separately
-- `pr-review-hooks.md` manifest at the repo root, drafted from the PR-review hooks in `../../references/pr-review.md`. Point at the rule files that already exist rather than restating them; every verification row must be a runnable command; name the evidence method and the merge gate explicitly.
+- `pr-review-hooks.md` manifest at the repo root, drafted from the PR-review hooks in `references/pr-review.md`. Point at the rule files that already exist rather than restating them; every verification row must be a runnable command; name the evidence method and the merge gate explicitly.
 - AGENTS.md skeleton with proper references
 - Per-directory AGENTS.md files where patterns are needed
 
@@ -117,7 +117,7 @@ For documents that exist, evaluate:
 - Update task-tracking docs when backlog policy changes
 - Update requirements docs when requirements policy changes
 - Update `pr-review-hooks.md` when rule files, verification commands, evidence methods, or merge policy change
-- Update the role→model assignment when `../../references/agent-roles.md` roles change or model availability changes
+- Update the role→model assignment when `references/agent-roles.md` roles change or model availability changes
 - Update AGENTS.md references when structure changes
 - Update per-directory AGENTS.md when patterns evolve
 
@@ -223,7 +223,7 @@ Document:
 
 ### Option C: Existing tool
 
-If the repo already uses Beads, Linear, Jira, or another tracker, document the equivalent operations for the required hooks in `../../references/task-tracking.md`.
+If the repo already uses Beads, Linear, Jira, or another tracker, document the equivalent operations for the required hooks in `references/task-tracking.md`.
 
 ## Requirements Setup Guide
 
@@ -335,7 +335,7 @@ Rules:
 
 ### Option B: Existing requirements tool or CLI
 
-If the repo already has a requirements system, document exact commands for the required hooks in `../../references/requirements.md`: list/show actors, use cases, workflows, requirements, apply approved changes, validate/query, and export reports. Mark every command as read-only or mutating, document auth/access prerequisites, and state which mutating commands require human approval.
+If the repo already has a requirements system, document exact commands for the required hooks in `references/requirements.md`: list/show actors, use cases, workflows, requirements, apply approved changes, validate/query, and export reports. Mark every command as read-only or mutating, document auth/access prerequisites, and state which mutating commands require human approval.
 
 ### Option C: No separate requirements system
 

@@ -41,6 +41,22 @@ role procedure; never restate the contract from memory.
 2. **Generate evidence** per the manifest's `evidence-captures` rows —
    before/after captures for UI diffs; durable URLs only. Tier 2 video only
    on explicit request.
+   - Prefer embedding images over linking them: `gh pr create`/`gh pr edit`
+     support `--attach PATH[#alt text]`, repeatable, combinable with
+     `--body-file`. If the body already references the same local path in
+     Markdown (`![alt](./before.png)`), `--attach` rewrites that reference in
+     place to the uploaded `user-attachments` URL instead of appending a
+     duplicate — write the Markdown with local paths first, then pass
+     `--attach` for each referenced file so the posted PR renders the images
+     inline rather than as clickable links.
+3. **Run verification**: every relevant `verification-commands` row; record
+   exact command + outcome. Never write a line for a command you did not run.
+4. **Self-review**: apply R1–R6 and every manifest `review-rules` row to your
+   own diff with their detection methods; fill the review-rules table with
+   real evidence links. Fix BLOCKERs; declare ESCALATEs in Follow-ups with
+   the question for the human.
+5. **Open the PR**, set tracking state per `pr-tracking`. The body on GitHub
+   must match the prepared body and describe the final SHA you push.
 3. **Run verification**: every relevant `verification-commands` row; record
    exact command + outcome. Never write a line for a command you did not run.
 4. **Self-review**: apply R1–R6 and every manifest `review-rules` row to your
