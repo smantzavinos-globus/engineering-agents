@@ -53,6 +53,28 @@ artifacts, never a substitute for them. An agent asked to plan work
 verifies the gate artifacts exist on disk first and creates whichever are
 missing, in pipeline order, before any plan is written.
 
+## Execution mode selection (NORMATIVE — required before execution starts)
+
+The pipeline is invariant; what varies is the vehicle that drives the
+stages. Confirm the mode with the human when the plan is approved (unless
+one is already agreed for the repo), record it in the worklog header, and
+keep it for the whole plan.
+
+| Situation | Mode |
+| --- | --- |
+| Default; multi-task plans; parallel tasks likely; isolation needed | **Pi subprocesses** |
+| Simple plans (≤ ~3 small tasks), one domain, no parallelism worth isolating | **Hermes subagents** |
+| Trivial change, single sitting, single domain, no review loop expected | **Single Hermes session** |
+
+Invariants in every mode: the pipeline, artifacts, verification classes,
+and gates are identical; verification runs on the host (never delegated to
+the context that did the work); the reviewer's context is never the
+implementer's; human gates are unchanged. Mode mechanics — pi session-ID
+conventions, session-reuse exceptions, per-mode evidence shapes — live in
+`docs/hermes/execution-modes.md`, which is the deep-dive reference for
+this table. When in doubt between two modes, pick the more isolated one;
+escalating mid-execution is cheap, de-escalating is not.
+
 ## Locating yourself
 
 - **New work item** (no brief): start at `discovery` (or
