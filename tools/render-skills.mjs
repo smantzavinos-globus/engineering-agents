@@ -136,6 +136,21 @@ function renderDelegate(harness, skillName, role, skill, prompt) {
     lines.push('})');
     return lines.join('\n');
   }
+  if (harness.delegationStyle === 'hermes-pi') {
+    // Hermes's standard mode is driving pi subprocesses
+    // (docs/hermes/execution-modes.md): fresh session per stage/task,
+    // session reuse only for small follow-ups within a stage, never across
+    // the implementer/reviewer boundary. <session-id> is a placeholder the
+    // agent fills at invocation (<plan-slug>-task-<N> per the doc). The
+    // Hermes-native delegate_task alternative exists for the
+    // human-selected Hermes-subagents mode; skills default to pi.
+    const roleLine = def.role ? `Role: ${def.role}. ` : '';
+    let fullPrompt = `${roleLine}${prompt}`;
+    if (skill) {
+      fullPrompt += ` Load and follow the skill '${skill}' at ${harness.skillPathPrefix}${skill}/SKILL.md before working.`;
+    }
+    return `pi --session-id <session-id> --name "${def.role ?? skillName}" ${jsString(fullPrompt)}`;
+  }
   if (harness.delegationStyle === 'hermes-delegate') {
     // Hermes agents delegate via delegate_task(tasks=[{goal, context}]).
     // Roles are rendered as a Role line inside the goal (Hermes has no named

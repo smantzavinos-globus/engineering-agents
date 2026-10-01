@@ -1,8 +1,8 @@
 {
   "id": "hermes",
   "compatibility": "hermes",
-  "skillPathPrefix": "~/.hermes/skills/",
-  "delegationStyle": "hermes-delegate",
+  "skillPathPrefix": "~/.pi/agent/skills/",
+  "delegationStyle": "hermes-pi",
   "hiddenSkills": [
     "configure-pi",
     "configure-opencode"

@@ -74,7 +74,7 @@ If the target directory is an epic root:
 ### Step 1: Create Plan
 
 ```
-delegate_task(tasks=[{goal: "Role: planner. Create a detailed plan for the engineering work at [plan directory path]. Read brief.md, approach.md, and findings/ for context. Load and follow your skill 'create-plan' (via skill_view) as the process for this task."}])
+pi --session-id <session-id> --name "planner" "Role: planner. Create a detailed plan for the engineering work at [plan directory path]. Read brief.md, approach.md, and findings/ for context. Load and follow the skill 'create-plan' at ~/.pi/agent/skills/create-plan/SKILL.md before working."
 ```
 
 ### Step 2: Review Plan (iterative)
@@ -82,7 +82,7 @@ delegate_task(tasks=[{goal: "Role: planner. Create a detailed plan for the engin
 Call the plan review sub-agent. Repeat until it reports COMPLETE:
 
 ```
-delegate_task(tasks=[{goal: "Role: plan-reviewer. Review the plan at [plan directory path]/plan.md for execution readiness. Load and follow your skill 'review-plan' (via skill_view) as the process for this task."}])
+pi --session-id <session-id> --name "plan-reviewer" "Role: plan-reviewer. Review the plan at [plan directory path]/plan.md for execution readiness. Load and follow the skill 'review-plan' at ~/.pi/agent/skills/review-plan/SKILL.md before working."
 ```
 
 Read the output summary. If status is `NEEDS_ANOTHER_PASS`, call again. Cap at 5 iterations.
@@ -121,7 +121,7 @@ Before creating the worklog, identify the repo task-tracking mechanism from AGEN
 If the plan cites or updates requirements, also identify the repo requirements mechanism from AGENTS.md or repo docs. If no mechanism is documented, ask before allowing canonical requirement edits.
 
 ```
-delegate_task(tasks=[{goal: "Role: worklog. Create a worklog for the plan at [plan directory path]/plan.md. Include the repo backlog capture policy from AGENTS.md or task-tracking docs if available. If the plan cites or updates requirements, include the repo requirements policy and approved requirement updates. Load and follow your skill 'create-worklog' (via skill_view) as the process for this task."}])
+pi --session-id <session-id> --name "worklog" "Role: worklog. Create a worklog for the plan at [plan directory path]/plan.md. Include the repo backlog capture policy from AGENTS.md or task-tracking docs if available. If the plan cites or updates requirements, include the repo requirements policy and approved requirement updates. Load and follow the skill 'create-worklog' at ~/.pi/agent/skills/create-worklog/SKILL.md before working."
 ```
 
 Commit the initialized worklog before starting T1:
@@ -149,13 +149,13 @@ re-dispatch it once at high tier.
 High tier:
 
 ```
-delegate_task(tasks=[{goal: "Role: worker-high. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow your skill 'execute-task' (via skill_view) as the process for this task."}])
+pi --session-id <session-id> --name "worker-high" "Role: worker-high. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow the skill 'execute-task' at ~/.pi/agent/skills/execute-task/SKILL.md before working."
 ```
 
 Low tier:
 
 ```
-delegate_task(tasks=[{goal: "Role: worker-low. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow your skill 'execute-task' (via skill_view) as the process for this task."}])
+pi --session-id <session-id> --name "worker-low" "Role: worker-low. Execute the next task in the worklog at [plan directory path]/worklog.md. Read the worklog first to determine which task to do. If you discover non-blocking follow-up work, follow the worklog's backlog capture policy and record any created item IDs. If the task includes approved requirement updates, apply them through the documented requirements mechanism and record changed requirement IDs. Load and follow the skill 'execute-task' at ~/.pi/agent/skills/execute-task/SKILL.md before working."
 ```
 
 **Per-task review (controlled by the plan):**
@@ -168,12 +168,12 @@ To change the choice mid-run, edit the plan's `Task review default` or the task'
 When the review is due, review just that task's committed changes:
 
 ```
-delegate_task(tasks=[{goal: "Role: code-reviewer. Review the most recent commit's changes against the plan at [plan directory path]/plan.md. Focus only on the current task's diff. Separate required fixes from non-blocking suggested backlog items. Check requirement alignment if the plan cites or updates requirements. Load and follow your skill 'review-code' (via skill_view) as the process for this task."}])
+pi --session-id <session-id> --name "code-reviewer" "Role: code-reviewer. Review the most recent commit's changes against the plan at [plan directory path]/plan.md. Focus only on the current task's diff. Separate required fixes from non-blocking suggested backlog items. Check requirement alignment if the plan cites or updates requirements. Load and follow the skill 'review-code' at ~/.pi/agent/skills/review-code/SKILL.md before working."
 ```
 
 If per-task review finds issues, call a fix sub-agent before continuing:
 ```
-delegate_task(tasks=[{goal: "Role: worker. Fix the issues found in the code review at [plan directory path]/code_review.md. Address only the open findings from the most recent review. Commit the fix as fix(T<N>): <short description>."}])
+pi --session-id <session-id> --name "worker" "Role: worker. Fix the issues found in the code review at [plan directory path]/code_review.md. Address only the open findings from the most recent review. Commit the fix as fix(T<N>): <short description>."
 ```
 
 Cap per-task fix attempts at 2 per task. Each fix pass must leave no intended changes uncommitted before advancing.
@@ -185,7 +185,7 @@ If per-task review suggests non-blocking backlog items, ask the human whether to
 After all tasks complete:
 
 ```
-delegate_task(tasks=[{goal: "Role: code-reviewer. Review the full implementation against the plan at [plan directory path]/plan.md. Review the complete branch diff. Separate required current-plan fixes from non-blocking suggested backlog items. Check requirement alignment if the repo maintains requirements or the plan cites requirement IDs. Load and follow your skill 'review-code' (via skill_view) as the process for this task."}])
+pi --session-id <session-id> --name "code-reviewer" "Role: code-reviewer. Review the full implementation against the plan at [plan directory path]/plan.md. Review the complete branch diff. Separate required current-plan fixes from non-blocking suggested backlog items. Check requirement alignment if the repo maintains requirements or the plan cites requirement IDs. Load and follow the skill 'review-code' at ~/.pi/agent/skills/review-code/SKILL.md before working."
 ```
 
 ### Step 7: Fix and Re-Review (iterative)
@@ -197,7 +197,7 @@ If code review finds issues:
 4. Repeat until COMPLETE or cap (5 iterations)
 
 ```
-delegate_task(tasks=[{goal: "Role: worker. Fix the issues found in [plan directory path]/code_review.md. Address all open Blocker, Critical, and Major findings."}])
+pi --session-id <session-id> --name "worker" "Role: worker. Fix the issues found in [plan directory path]/code_review.md. Address all open Blocker, Critical, and Major findings."
 ```
 
 ### Step 8: Complete
