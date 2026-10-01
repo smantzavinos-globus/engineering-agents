@@ -5,20 +5,11 @@ review → worklog → execute → code review → PR review) is invariant. What
 varies is **how Hermes drives the stages**. Three modes exist; they differ in
 isolation, cost, and speed — not in what each stage must produce.
 
-## Mode selection
-
-Hermes confirms the mode with the human at the start of execution (when the
-plan is approved) unless one is already agreed for the repo. Guidance, not
-rules:
-
-| Situation | Suggested mode |
-|-----------|----------------|
-| Default; multi-task plans; parallel tasks likely; work needs isolation | **Pi subprocesses** |
-| Simple plans (≤ ~3 small tasks), one domain, no parallelism worth isolating | **Hermes subagents** |
-| Trivial change, single sitting, everything in one domain, no review loop expected | **Single Hermes session** |
-
-When in doubt between two modes, pick the more isolated one. Escalating
-mid-execution (session → subagents → Pi) is cheap; de-escalating is not.
+**Mode selection is normative in the `software-development` skill** (its
+"Execution mode selection" table): confirm the mode with the human when the
+plan is approved, record it in the worklog header, keep it for the plan.
+This document is the deep-dive reference — the per-mode mechanics that the
+table summarizes.
 
 ## The three modes
 
@@ -84,12 +75,9 @@ its own work.
 
 ## Invariants common to all modes
 
-- The pipeline, artifacts, verification classes, and gates are identical —
-  only the vehicle changes.
-- Verification runs on the host (Hermes), never delegated to the context
-  that did the work.
-- Reviewer independence: reviewer context ≠ implementer context, in every
-  mode.
+Normative summary lives in the `software-development` skill. Mode-specific
+additions here:
+
 - Human approval gates (plan review → execution; PR merge) are unchanged.
   Exception: delivery-pipeline items with `Autonomy: auto` skip the plan
   gate (see `docs/references/delivery-pipeline.md` §2); PR merge is never
