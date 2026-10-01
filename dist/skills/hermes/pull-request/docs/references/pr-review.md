@@ -182,16 +182,21 @@ not ceilings.
    comment (`reviewed@<sha>`). Subsequent passes review only the delta since
    the stamp plus verification that prior findings are resolved. Unchanged,
    already-approved code is not re-reviewed.
-5. **Fix loops are bounded.** The author fixes and pushes; after **two** fix
+5. **Review threads gate READY.** The Reviewer posts READY only when every
+   review thread on the PR is resolved. An unresolved thread is `FIX` (the
+   author resolves it by fixing or by answering with evidence), or an ESCALATE
+   finding when it needs a human decision. The Reviewer never resolves threads
+   itself. The author side (babysit) resolves the threads it addresses.
+6. **Fix loops are bounded.** The author fixes and pushes; after **two** fix
    loops without a `READY` verdict, the PR escalates to the human with the
    findings history summarized. Agents do not loop indefinitely, and the
    human never reviews an intermediate state.
-6. **Notifications.** On `READY`, the author notifies the human with a short
+7. **Notifications.** On `READY`, the author notifies the human with a short
    digest: what the PR does, evidence links, the verdict, and the merge-gate
    status. On `BLOCKED` or any ESCALATE finding, the human is notified
    immediately with the specific question. Humans are not notified about
    intermediate `FIX` states.
-7. **State stays truthful.** PR/project status moves per the repo's
+8. **State stays truthful.** PR/project status moves per the repo's
    pr-tracking manifest. Reviewers and authors update state to reflect
    reality; stale "in review" state is a process bug.
 

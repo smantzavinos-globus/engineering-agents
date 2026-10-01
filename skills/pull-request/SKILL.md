@@ -72,6 +72,9 @@ role procedure; never restate the contract from memory.
    (`gh pr checks <n> -R <repo>`); a red required check (the manifest's
    `merge-gate` row names them) is a BLOCKED-class fact: post BLOCKED, never
    READY, naming the failing check.
+   **Review threads:** list the PR's review threads; any unresolved thread is
+   FIX (or an ESCALATE finding if it needs a human decision), never READY.
+   Do not resolve threads yourself.
 4. **Check body and evidence** against the contract; silently wrong rows in
    the author's table are a MAJOR finding.
 5. **Post one comment**: confirmed rules table, severity-ordered findings

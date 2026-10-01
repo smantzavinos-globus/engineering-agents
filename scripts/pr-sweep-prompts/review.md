@@ -8,6 +8,8 @@ Setup:
 3. Scope: if an earlier comment carries `reviewed@<sha>`, review only the delta since that sha, plus whether prior findings are resolved. Otherwise do a full first pass.
 4. Run the manifest verification commands that are relevant to the diff inside the worktree. A claimed green without a run is a finding.
 
+**Review threads gate READY.** List the PR's review threads (GraphQL `reviewThreads` with `isResolved`). Any unresolved thread blocks READY: the verdict is FIX (the author side resolves it) or, when the thread needs a human decision, an ESCALATE finding. Never resolve threads yourself and never accept a thread as resolved without checking the current code.
+
 Post **exactly one** PR comment with `gh pr comment {number} -R {repo} --body-file <file>`, after checking that you have not already posted for this head. It must contain the confirmed rules table (R1–R6 plus the manifest rows), severity-ordered findings with file:line anchors and suggested fixes, verification outcomes (command → result), and the verdict. The **last lines** of the comment must be:
 
 ```

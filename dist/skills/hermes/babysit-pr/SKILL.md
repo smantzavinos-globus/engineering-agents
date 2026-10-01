@@ -124,7 +124,11 @@ notification can re-enter.
    Require fast-forward ancestry; if diverged, start from published head and
    cherry-pick only corrective commits, never force-push without explicit
    authority. Read back the PR head SHA after pushing.
-4. Reply to inline comments with actual commit/test evidence. Before any
+4. Resolve every review thread you addressed (fixed, or answered with
+   evidence) with the GraphQL `resolveReviewThread` mutation; leave a thread
+   open only when it needs a human decision and say so. The independent
+   Reviewer will not issue READY while any thread is unresolved.
+   Reply to inline comments with actual commit/test evidence. Before any
    non-idempotent reply/review request, query existing replies/events to
    prevent duplicates. Read back exact reply IDs/bodies and confirm the
    review request was registered; POST success alone is insufficient.
@@ -135,7 +139,17 @@ notification can re-enter.
 5. Re-arm the one-shot watcher using the latest **processed** review ID, not
    latest head, while monitoring is requested. Refresh the claim heartbeat.
    If a new `FIX` verdict brings the PR to the two-fix-loop bound, stop and
-   escalate with the findings history instead of re-arming. Report factual CI/check state
+   escalate with the findings history instead of re-arming.
+   **Every escalation is a PR comment, not just a result file:** post one
+   comment with the question, the options and tradeoffs, and a recommended
+   answer per question (numbered, so the human can reply by number), ending in
+   `<!-- babysit-reply escalate head=<sha> -->`. Then set the state label to
+   `pr:escalated` (removing `pr:ready-merge` or any other state label) and
+   release the claim. A human instruction posted as an `@<agent>` mention is
+   work for this loop, not the Reviewer: do it, answer it on the PR, or escalate
+   it when it needs a decision. Mark your own replies with
+   `<!-- babysit-reply -->` and omit the agent handle, so a shared human/agent
+   account is not read as a new mention. Report factual CI/check state
    separately from local tests; no checks is **not** green CI. Note runtime
    limitations honestly.
 

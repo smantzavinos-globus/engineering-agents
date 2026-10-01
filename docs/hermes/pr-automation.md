@@ -60,9 +60,11 @@ Four trigger surfaces, in priority order:
    script (see [The sweep tick](#the-sweep-tick-no-llm)), so every tick
    costs zero LLM tokens and stays far inside GitHub API rate limits.
 2. **Comment mentions.** A human comment containing the agent's handle
-   triggers on the next tick: `@<agent> review` (or any other mention)
-   dispatches a Reviewer; `@<agent> fix` / `@<agent> babysit` starts an
-   author-side round (trigger 4). The handle is
+   triggers on the next tick: `@<agent> review` dispatches a Reviewer; any
+   other mention (`@<agent> <instruction>`, including `fix` / `babysit`)
+   starts an author-side round (trigger 4), whose prompt carries the
+   mentioning comment. Both PR-level comments and inline review-thread
+   comments count. The Reviewer keeps a single job: reviewing. The handle is
    per-repo configuration, recorded in the repo's `pr-tracking` manifest
    row. Mentions always win over sweep state — a mention forces a run even
    if labels look stale.
@@ -71,8 +73,10 @@ Four trigger surfaces, in priority order:
    (labels updated mechanically; no LLM needed). This closes the
    silent-stale-approval hole: a stamped READY whose branch moved is not
    mergeable advice.
-4. **Babysit mention.** `@<agent> babysit` on a PR starts an author-side
-   babysit session for it (the `babysit-pr` skill), the same as asking in
+4. **Babysit mention.** `@<agent> <instruction>` on a PR starts an author-side
+   babysit round that acts on and answers the instruction, with no claim or
+   under a sweep-owned one (never twinning a chat-started claim). It is the same session
+   as asking in chat (the `babysit-pr` skill), the same as asking in
    chat. The sweep dispatches the session; it does not babysit inline.
 
 Webhook-triggered instant dispatch is the eventual upgrade and is
@@ -170,6 +174,26 @@ Per PR, each tick:
   sees a finished review at this head and does nothing. If a PR re-dispatches
   every tick, the rules are wrong: fix the script, do not widen a session's
   job.
+
+### Shared human/agent account
+
+When the human and the agent post as the same login (`PR_SHARED_ACCOUNT=1`), a
+comment by a configured handle is still a mention if it carries no pipeline
+marker (`<!-- ... -->` or a `babysit:` claim line). Agent comments carry a
+marker (`<!-- babysit-reply -->`, the verdict marker) and never mention the
+handle, so they cannot trigger themselves. Without the flag, any comment by a
+handle is ignored as a self-mention.
+
+### Escalation and review threads
+
+- A babysit round that ends in ESCALATE posts one PR comment (question,
+  options, recommended answers, ending `<!-- babysit-reply escalate head=… -->`)
+  and sets `pr:escalated`, removing any other state label. The sweep's push
+  demotion still moves `pr:escalated` to `pr:re-review` when the head moves.
+- The Reviewer posts READY only when every review thread is resolved. The
+  babysit round resolves the threads it addresses. A round that resolves
+  threads without pushing (`status` FIXED, same head) gets one fresh review of
+  that head, since no push demotion fires.
 
 ## Dispatch: the tick never reviews inline
 
