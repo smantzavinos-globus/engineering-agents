@@ -1,6 +1,6 @@
 # Skill Rendering
 
-This repository keeps **one canonical, harness-neutral source** for each skill and **generates** the final skill files for every supported harness (Pi and OpenCode). This removes the drift that came from hand-maintaining a separate adapted copy of each skill per harness.
+This repository keeps **one canonical, harness-neutral source** for each skill and **generates** the final skill files for every supported harness (Pi, OpenCode, and Hermes). This removes the drift that came from hand-maintaining a separate adapted copy of each skill per harness.
 
 ## Why
 
@@ -23,7 +23,7 @@ Hand-maintaining a copy per harness let these drift apart in prose and even sema
 | `tools/render-skills.mjs` | Deterministic renderer: canonical skills × harness profiles + shared resources → `dist/` |
 | `dist/skills/<id>/<name>/` | Generated per-harness skill trees (committed, drift-tested, never hand-edited) |
 
-The Nix modules link the generated trees: Pi from `dist/skills/pi/*`, OpenCode from `dist/skills/opencode/*`.
+The Nix modules link the generated trees: Pi from `dist/skills/pi/*`, OpenCode from `dist/skills/opencode/*`. Hermes agents are NOT nix-linked: they sync `dist/skills/hermes/*` into their own skill stores via the `skill-sync` skill (Hermes agents self-update their skills), so no Nix wiring is needed for Hermes.
 
 ## Canonical skill format
 
@@ -78,7 +78,7 @@ Absent ⇒ the skill renders for every harness. OpenCode-only skills include
 
 Each `harnesses/<id>.json` declares:
 
-- `compatibility` — value stamped into rendered frontmatter (`pi` or `opencode`).
+- `compatibility` — value stamped into rendered frontmatter (`pi`, `opencode`, or `hermes`).
 - `skillPathPrefix` — where skills live on that harness (used when a named-subagent delegation embeds a "read your skill file at …" instruction).
 - `delegationStyle` — `pi-subagent`, `opencode-task`, or `hermes-delegate`
   (Hermes renders `delegate_task(tasks=[{goal: "Role: <role>. <prompt> Load

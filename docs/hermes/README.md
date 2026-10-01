@@ -24,19 +24,26 @@ If this section and a canonical doc disagree, the canonical doc wins.
 
 ## How Hermes consumes this repo
 
-Hermes agents do **not** install rendered copies (that's the Pi/OpenCode
-model — see `docs/skill-rendering.md`). Point the agent at this repo and it
-reads canonical files directly. The entry point is this directory:
+Hermes agents install the **rendered Hermes tree** (`dist/skills/hermes/`)
+into their own skill stores and self-manage it thereafter: the one-time
+bootstrap is a manual copy (see [Usage with Hermes](../../README.md#usage-with-hermes)),
+and every later alignment runs through the `skill-sync` skill +
+`tools/sync-skills.mjs` — upstream `dist/skills/hermes/` is the source of
+truth, local deltas are dispositions (`take-upstream` / `keep-local`
+recorded / `propose-upstream` PR), never silent drift. The entry point for
+any fresh session is the `software-development` skill (trigger: "follow
+the dev process"), which routes into the pipeline stage skills below.
 
 1. Read this README.
-2. Follow the checklist below.
-3. For any job, read the canonical path from the map — never hunt.
+2. Run the `skill-sync` procedure (bootstrap if never synced).
+3. Load `software-development` and locate your stage via its gate table.
+4. For any job, read the canonical path from the map — never hunt.
 
 ## Skill reference map
 
-Canonical sources (`skills/<name>/SKILL.md`), not rendered copies. Hermes
-agents following the skill-sync checklist maintain their own equivalents;
-agents using this repo as a live reference read these directly.
+Installed copies come from `dist/skills/hermes/` (kept aligned via
+skill-sync); the canonical sources (`skills/<name>/SKILL.md`) are linked
+here for direct reading.
 
 | Job | Canonical path |
 |-----|----------------|

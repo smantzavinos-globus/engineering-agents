@@ -1,6 +1,7 @@
 ---
 name: skill-sync
 description: "Use when synchronizing this agent's installed skills with the upstream engineering-agents repo, when the human says 'sync skills', or when starting a session after upstream skills may have changed. Runs the standard diff, records the upstream SHA, and makes disposition judgments."
+harnesses: [hermes]
 ---
 
 # Skill sync — keeping installed skills aligned with upstream
