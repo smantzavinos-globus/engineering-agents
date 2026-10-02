@@ -56,14 +56,6 @@ role procedure; never restate the contract from memory.
    the question for the human.
 5. **Open the PR**, set tracking state per `pr-tracking`. The body on GitHub
    must match the prepared body and describe the final SHA you push.
-3. **Run verification**: every relevant `verification-commands` row; record
-   exact command + outcome. Never write a line for a command you did not run.
-4. **Self-review**: apply R1–R6 and every manifest `review-rules` row to your
-   own diff with their detection methods; fill the review-rules table with
-   real evidence links. Fix BLOCKERs; declare ESCALATEs in Follow-ups with
-   the question for the human.
-5. **Open the PR**, set tracking state per `pr-tracking`. The body on GitHub
-   must match the prepared body and describe the final SHA you push.
 6. **Link and hand off.** When the work came from a backlog item, the body
    carries its closing reference (`Closes #N` on GitHub) and the item moves to
    `In review` (per the `backlog` skill). Then start babysitting: add
