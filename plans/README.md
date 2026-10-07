@@ -21,7 +21,7 @@ Use the commands documented there instead of inventing new top-level verificatio
 
 ## Artifact Expectations for This Repo
 - `brief.md` records goals, non-goals, constraints, and any requirement context that matters for the work.
-- `approach.md` explains structural decisions and cross-links the findings that justify them.
+- `approach.md` leads the canonical change map; follow [Change-oriented approach authoring](../docs/references/design-approach-authoring.md) for the optional reference, linked assets, generated HTML views, and package-wide review/approval inventory.
 - `plan.md` is the sequential planning artifact and must include dependency-ordered tasks, a verification class and execution tier per task, explicit checklists, exact verification commands, and requirement refs where relevant.
 - ~~`team_plan.md`, `team_plan_review.md`, `team-worklog.md`~~ — RETIRED with team mode (ADR 0006). Do not create them in new plans.
 - `worklog.md` is the execution entry point. It should copy the task gate and final gate from the canonical docs, record backlog IDs created during execution, and note approved requirement changes.

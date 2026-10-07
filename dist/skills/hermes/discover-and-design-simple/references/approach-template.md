@@ -1,90 +1,95 @@
-# Approach Template
+# Approach template
+
+Read [Change-oriented approach authoring](design-approach-authoring.md) before
+using this scaffold. Adapt it to the change: omit unused subsections, state a
+reasoned `N/A` for irrelevant layers, and leave no empty placeholders in the
+finished artifact. A separate reference is optional, not a second required doc.
+
+## Main document: `approach.md`
+
+```markdown
+# Approach: <change>
 
 **Created:** YYYY-MM-DD
-**Plan:** ./brief.md
-**Based on:** ./findings/
+**Brief:** [Brief](brief.md)
+**Evidence:** [Current state](findings/current_state.md)
 
-## Solution Model
+## Overview
+<Problem, recommendation, user outcomes, scope/non-goals, pending decisions.>
+<Reader map and explicit links to reference/meaning-bearing assets, if present.>
 
-### Components
-- **ComponentA** — responsibility
-- **ComponentB** — responsibility
+## Change map
+| Change label | Current → proposed | What stays | Decision status |
+| --- | --- | --- | --- |
+| <descriptive label, not a requirement ID> | <delta> | <non-regression> | <confirmed or owner decision pending> |
 
-### How They Fit Together
-<Description of the interaction model between components>
+## Domain and system model
+<Concepts, relationships, lifecycle and ownership before storage details.>
+<Current evidence, proposed boundaries; before/after diagram if useful.>
 
-## Key Decisions
+## Schema and backend reads/writes
+<Trace the same change labels into fields, constraints, scoped reads, validated
+writes, transaction boundaries and downstream effects. Link exact contracts.>
 
-| Decision | Options Considered | Chosen | Rationale | Consequences | Revisit If |
-|----------|-------------------|--------|-----------|--------------|------------|
-| <decision> | A, B, C | B | <why> | <tradeoffs accepted> | <conditions that would change this> |
+## Product interfaces
+<For each changed interface: current/proposed capabilities and unchanged behavior.>
+<UI: annotated low-fidelity wireframes, see/do, shown/mutated data, navigation,
+permissions and relevant states. CLI/Pi: verified syntax source, selectors,
+output/error deltas and compatibility, or conceptual non-executable examples.>
 
-## What Changes vs What Stays
-- **Changes:** <what will be modified or added>
-- **Stays:** <what must NOT change — explicit non-regressions>
+## Cross-cutting concerns and rollout
+<Consequential permissions, invariants, compatibility, migration/backfill,
+failure/retry, operations, dependencies, rollout/rollback and verification.>
+<Included day-2 needs and safe deferrals. Link detailed contracts if separated.>
+<Relevant repository requirement IDs and alignment; draft change proposals only
+when needed, clearly not canonical until authorized.>
 
-## Requirements Alignment
+## Pending decisions
+| Change label | Owner | Options and recommendation | Consequence / blocks |
+| --- | --- | --- | --- |
+| <label also flagged in affected section> | <owner> | <choice> | <impact> |
 
-If the repo maintains requirements, cite relevant IDs and explain alignment.
+## Engineering contracts
+<When there is no separate reference: applicable detailed contracts go here,
+with descriptive headings, not a duplicate of the main change narrative.>
+```
 
-| Requirement | How the approach satisfies or changes it |
-|-------------|------------------------------------------|
-| <FR-001, NFR-001, or OPR-001> | <alignment> |
+In the relevant change cards, include decision criteria, alternatives, rationale,
+consequences, and revisit conditions. Keep existing/proposed behavior distinct
+from confirmed/pending decision status. Do not reduce the approach to a file list.
 
-## Requirement Change Proposal
+## Optional document: `approach_reference.md`
 
-Draft proposed durable requirement changes here. These are not canonical until approved and applied during execution.
+Use for contracts that would overwhelm the main review narrative. Link each
+contract heading from its consequential decision in `approach.md` and include
+this reference in the reviewed package inventory.
 
-### Add
-- <none | proposed new requirement text with suggested ID>
+```markdown
+# Engineering reference: <change>
 
-### Update
-- <none | existing requirement ID and proposed wording change>
+**Main approach:** [Change map](approach.md#change-map)
 
-### Remove
-- <none | existing requirement ID and rationale>
+## <Descriptive contract heading>
+<Exact model/schema, read/write, authorization, transaction, concurrency,
+ordering, idempotency and error rules relevant to this change.>
 
-## Boundary Definitions
-- <Component X only does Y; it never does Z>
-- <Module A does not import from Module B>
+## Safety and deviations
+<Enforceable tenets/invariants; implementation details that may vary; approval
+and durable recording required when consequential decisions must change.>
 
-## Design Tenets
-Non-negotiable principles that must hold even if implementation details change:
-- <e.g., "read-only scanner — never mutates source">
-- <e.g., "deterministic output — same input always produces same output">
-- <e.g., "contract boundary is versioned JSON">
+## Migration and operations
+<Backfill, rollout/rollback conditions, operational limits and observability.>
 
-## Invariants & Safety Properties
-Conditions that must remain true throughout and after implementation:
-- <e.g., "all API responses include a correlation ID">
-- <e.g., "no user data is logged at INFO level">
+## Verification boundaries
+<Test layers, realistic fixtures/harness preparation, negative/edge cases,
+change-specific bad-test avoidance, and canonical verification command sources.>
 
-## Deviation Protocol
-If reality forces a change from this approach during implementation:
-- **Preserve:** <tenets and invariants that must not change>
-- **Can change safely:** <implementation details that may vary>
-- **Record:** deviations in plan.md → Implementation Notes → Deviations
+## Patterns and risks
+<Evidenced prior art/source paths, specific risks and actionable mitigations.>
+```
 
-## Testing Philosophy
-
-### What good tests look like for this change
-- <e.g., "tests assert on behavior output, not internal state">
-- <e.g., "each test exercises one scenario end-to-end through the service layer">
-
-### Bad-test avoidance
-What would count as insufficient or brittle testing:
-- <e.g., "source-reading tests that pass even if runtime behavior breaks">
-- <e.g., "export-exists tests without behavioral proof">
-- <e.g., "tests only covering happy path when the regression risk is in error handling">
-
-## Patterns to Follow
-- <Follow existing pattern in `src/path/` for X>
-- <Use the same approach as `src/other/` for Y>
-
-## Risks and Mitigations
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| <risk> | <what happens if it materializes> | <how to prevent or handle> |
-
-## Open Questions (to resolve during planning)
-- <Any remaining questions that detailed planning will answer>
+Rename or omit these reference headings as appropriate. Give detailed constraints
+one authoritative home; link rather than repeat them. Generate HTML views from
+the Markdown and assets following the shared contract; do not author independent
+HTML decisions. The review record carries revision, artifact inventory, generation
+and visual inspection evidence, not `state.json`.

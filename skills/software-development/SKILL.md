@@ -68,12 +68,16 @@ single authority; the per-stage skills do not re-litigate it.
 | --- | --- | --- |
 | Research | `brief.md` (goals/non-goals/constraints/success criteria) | Run `discovery` first. CHAT CONTEXT IS NOT A BRIEF — formalize it. |
 | Approach (`design`) | `brief.md` + research findings on disk | `discovery`/`research` first |
-| Approach review | `approach.md` | `design` first |
-| Planning (`create-plan`) | APPROVED `approach.md` (review clean) | `review-approach` first |
+| Approach review | Canonical package linked from `approach.md` | `design` first |
+| Planning (`create-plan`) | APPROVED canonical approach package at the reviewed revision (review clean) | `review-approach` first |
 | Plan review | `plan.md` complete per template | `create-plan` first |
 | Worklog / execution | plan review CLEAN (zero Blocker/Critical/Major) + **human approval** | Stop. Present the plan for approval. |
 | Code review | task(s) executed, commits landed | `execute-task` first |
 | PR review | code review clean | `review-code` first |
+
+The approach package scope, revision inventory, and generated-view rules are in
+[references/design-approach-authoring.md](references/design-approach-authoring.md).
+This changes no stage or approval gate.
 
 **Artifact precedence:** briefs, approaches, and plans are reviewable
 artifacts — decisions recorded in conversation are CONTENT for those

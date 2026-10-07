@@ -45,6 +45,7 @@ Use this file as the repo entry point. It routes to the canonical docs for this 
 
 ## Planning Artifacts
 - `plans/README.md` — repo-specific planning guidance, canonical verification sources, and plan/worklog constraints for this repo.
+- `docs/references/design-approach-authoring.md` — change-oriented canonical approach packages and generated HTML review views.
 - `docs/approaches/parallel.md` — Pi execution approach: DAG scheduler, planned fence groups, planning rules.
 - `docs/execution-patterns.md` — Parallel runtime constraints (sandbox, parent-driven loop).
 - Use plan/worklog artifacts to reference the canonical testing, backlog, and requirements docs instead of restating their policies inconsistently.

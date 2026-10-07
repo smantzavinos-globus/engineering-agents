@@ -11,7 +11,21 @@
 ## Review YYYY-MM-DD (Review N)
 
 **Approach:** `<path to approach.md>`
+**Reviewed revision:** <commit ID, or per-input content digests for working-tree inputs>
 **Brief alignment:** Yes | No
+
+### Reviewed package and evidence
+| Artifact | Role (canonical Markdown / meaning-bearing asset / generated view) | Revision or digest |
+| --- | --- | --- |
+| <exact relative path; enumerate all package inputs and generated outputs> | <role> | <revision> |
+
+- Generation: <renderer/version, exact invocation, inputs and presentation configuration>
+- Freshness: <evidence that generated views match the reviewed inputs>
+- Navigation: <Markdown/HTML links, images, heading anchors and portable assets checked>
+- Visual inspection: <rendered views/diagrams/wireframes and widths inspected, result, or blocker>
+- Semantic equivalence: <evidence for editorial moves between main/reference, or N/A>
+- Readability: <consequential decisions visible in main; detailed contracts discoverable>
+- Pending owner rulings: <owner/options/what is blocked, or none>
 
 ### Brief Alignment Check
 | Brief Goal/Constraint | Addressed in Approach? | How |

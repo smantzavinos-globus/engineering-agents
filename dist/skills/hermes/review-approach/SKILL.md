@@ -15,16 +15,17 @@ You are a senior architect reviewer. Your job is to find problems in the approac
 ## Inputs
 
 - Plan directory path (MUST be provided)
-- Read: `approach.md`, `brief.md`, and relevant files in `findings/`
+- Read [references/design-approach-authoring.md](references/design-approach-authoring.md), `brief.md`, the entire canonical package linked from `approach.md` (optional reference and meaning-bearing assets included), and relevant files in `findings/`.
+- Inspect the generated HTML views and assets; verify their freshness and navigation against the canonical inputs. HTML is a derived view, not another authority.
 
 ## Process
 
-1. **Read context** — Read approach.md, brief.md, and findings
-2. **Read existing review** — If `approach_review.md` exists, read it for prior findings
-3. **Review the approach** against quality criteria (see below)
-4. **Fix safe issues** — Obvious improvements, apply directly to approach.md
-5. **Document findings** — Write/append to `approach_review.md`
-6. **Commit** — Stage and commit only approach.md and approach_review.md
+1. **Read context** — Read the brief, full linked canonical package, and findings; enumerate package inputs
+2. **Read existing review** — If `approach_review.md` exists, read it for prior findings and revision inventory
+3. **Review the package** against quality criteria (see below), including readability, semantic consistency, generated-view freshness, navigation, and rendered visual evidence
+4. **Fix safe issues** — Apply obvious clarifications to the authoritative Markdown or asset source, not independent HTML; regenerate and recheck any affected views. Independently verify semantic equivalence for editorial moves between main and reference.
+5. **Document findings** — Write/append to `approach_review.md`, recording the exact reviewed revision, artifact inventory, generation and inspection evidence, and any unresolved owner rulings
+6. **Commit** — Stage only the reviewed package changes, affected regenerated views, and approach_review.md; follow the Git Policy below
 
 **Update rule:** When fixing approach issues, write as if it has always been correct. The review log is the audit trail.
 
@@ -36,6 +37,15 @@ You are a senior architect reviewer. Your job is to find problems in the approac
 - Does it avoid ALL non-goals (not accidentally scope-creep)?
 - Are success criteria from the brief achievable with this approach?
 - If the brief records likely-overlooked needs, are included items addressed and deferred items respected?
+
+### Change-oriented readability and semantics
+- Can a human trace the change map through model, schema/reads/writes, interfaces, and rollout?
+- Are existing/proposed behavior and confirmed/pending owner choices clearly distinct?
+- Are consequential decisions visible in the main document, with exact contracts linked rather than duplicated or contradicted?
+- Are relevant UI capabilities, data shown/mutated, navigation and states explained? Require annotated wireframes where they materially clarify the decisions, and inspect any supplied wireframes; otherwise assess the explanation in prose.
+- Are CLI/Pi examples supported by verified syntax sources and compatibility evidence?
+- Does the package inventory cover all linked meaning-bearing assets and Markdown, with current generated HTML, working links/images/anchors, and recorded visual inspection?
+- If content moved between main and reference, has semantic equivalence been independently checked?
 
 ### Component completeness
 - Are all necessary components identified?
@@ -103,7 +113,7 @@ You are a senior architect reviewer. Your job is to find problems in the approac
 
 ## Completion Criteria
 
-The review is **complete** only when ZERO Blocker/Critical/Major issues are found in a pass.
+The review is **complete** only when ZERO Blocker/Critical/Major issues are found in a pass, the full canonical package revision is recorded, and required generation/navigation/visual evidence is verified. Missing rendering or visual access is a recorded blocker, not a clean review. A COMPLETE review does not substitute for human acceptance.
 
 ## Output
 
@@ -126,8 +136,11 @@ Approach Review Summary:
 ## Git Policy
 
 Commit only:
-- `approach.md` (if updated)
+- Canonical Markdown and explicitly linked meaning-bearing assets changed by this review
+- Affected regenerated HTML views and portable presentation assets
 - `approach_review.md`
+
+Do not stage unrelated files. Keep the reviewed inventory current after fixes.
 
 Commit message: `approach-review: review N`
 

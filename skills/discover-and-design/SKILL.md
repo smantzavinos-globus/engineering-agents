@@ -88,7 +88,11 @@ Verify [specific claim from the discussion] against [specific files/modules]. Wr
 4. **Write both artifacts** into the plan directory (ask for the path if
    missing). Use the templates in
    [references/brief-template.md](references/brief-template.md) and
-   [references/approach-template.md](references/approach-template.md). Record
+   [references/approach-template.md](references/approach-template.md). Read and follow
+   [references/design-approach-authoring.md](references/design-approach-authoring.md):
+   author the main change map, optional linked reference and meaning-bearing assets;
+   generate and inspect HTML views with the repository's chosen renderer. The fast
+   path does not bypass package semantics, freshness, or visual evidence. Record
    plan level. Fill the decisions tables from the conversation — each decision
    records what was chosen and the rationale as discussed, not new options you
    invented. If the repo maintains requirements, cite IDs or list questions;
@@ -96,15 +100,20 @@ Verify [specific claim from the discussion] against [specific files/modules]. Wr
 5. **Run one approach review pass** unless the human waives it:
 
 {{delegate:approachReview skill=review-approach}}
-Review the approach at [plan directory path]/approach.md for architectural soundness and brief alignment.
+Review the package linked from [plan directory path]/approach.md, including its reference and meaning-bearing assets, for architectural soundness, brief alignment, readability, and rendered visual evidence. Record the reviewed revision and artifact inventory.
 {{/delegate}}
 
    Fix what it finds in one pass. If review exposes a real design fork the
    discussion never settled, stop — that work belongs in the full Design
    phase.
-6. **Show the paths and wait.** Do not commit until the human accepts both
-   files. Then commit `brief.md`, `approach.md`, `approach_review.md` (if
-   any), `findings/` (if any), and `state.json` as
+6. **Show the paths and wait.** Present the brief and full canonical package with
+   generated views. Human acceptance covers the recorded package revision, not
+   only the two entry files. If review was waived, still record the package
+   inventory and generation/inspection evidence in `approach_review.md`, explicitly
+   noting the waiver rather than claiming an independent clean review.
+   Do not commit until accepted. Then commit `brief.md`,
+   the approach package and generated views, `approach_review.md`,
+   `findings/` (if any), and `state.json` as
    `design: document agreed approach for <slug>`.
 7. **Next step:** "{{note:design-execute-standard}}"
 

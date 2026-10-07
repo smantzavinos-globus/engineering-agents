@@ -7,6 +7,10 @@
     {
       "source": "skills/design/references/approach-template.md",
       "target": "references/approach-template.md"
+    },
+    {
+      "source": "docs/references/design-approach-authoring.md",
+      "target": "references/design-approach-authoring.md"
     }
   ],
   "discover-and-design-simple": [
@@ -17,6 +21,10 @@
     {
       "source": "skills/design/references/approach-template.md",
       "target": "references/approach-template.md"
+    },
+    {
+      "source": "docs/references/design-approach-authoring.md",
+      "target": "references/design-approach-authoring.md"
     }
   ],
   "pull-request": [
@@ -67,6 +75,10 @@
     {
       "source": "docs/references/agent-roles.md",
       "target": "references/agent-roles.md"
+    },
+    {
+      "source": "docs/references/design-approach-authoring.md",
+      "target": "references/design-approach-authoring.md"
     }
   ],
   "execution-orchestrator": [
@@ -95,6 +107,24 @@
     {
       "source": "docs/references/agent-roles.md",
       "target": "references/agent-roles.md"
+    }
+  ],
+  "design": [
+    {
+      "source": "docs/references/design-approach-authoring.md",
+      "target": "references/design-approach-authoring.md"
+    }
+  ],
+  "review-approach": [
+    {
+      "source": "docs/references/design-approach-authoring.md",
+      "target": "references/design-approach-authoring.md"
+    }
+  ],
+  "create-plan": [
+    {
+      "source": "docs/references/design-approach-authoring.md",
+      "target": "references/design-approach-authoring.md"
     }
   ]
 }
