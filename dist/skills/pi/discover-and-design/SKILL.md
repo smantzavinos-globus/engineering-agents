@@ -67,7 +67,15 @@ process with these changes:
    into a single round. If the context arrived as a handoff summary rather
    than a live conversation and key parts are missing, ask for them instead of
    guessing.
-2. **Verify only what matters.** Check the discussion's load-bearing claims
+2. **Verify only what matters.** Before approach authoring, read
+   [references/design-approach-authoring.md](references/design-approach-authoring.md)
+   and resolve its **Required repo hooks** from root `AGENTS.md` direct routes or
+   a linked compact mapping. Read referenced docs and affected sources; record
+   applicability (`N/A` needs a reason). Missing consequential hooks require an
+   owner ruling, not guesses or a duplicated local procedure. In unattended mode,
+   record the unresolved hook as a blocking owner question, not a default; do not
+   claim readiness. Unconfigured rendering blocks actual package delivery.
+   Check the discussion's load-bearing claims
    against the actual code: the files and modules it names, the integration
    points and behavior it assumes. A few file reads in this session is usually
    enough; at most one focused research delegate:

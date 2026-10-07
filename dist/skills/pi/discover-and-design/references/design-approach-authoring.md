@@ -4,6 +4,72 @@ Use this contract when authoring, reviewing, or planning from an approach. It
 applies to Design and the combined discovery/design paths. It does not change
 stage gates, plan levels, requirement authority, or execution policy.
 
+## Required repo hooks
+
+The shared contract owns the authoring, review, and planning procedure. The target
+repository supplies local facts through these stable hook keys; it does not need
+another prose copy of this procedure or a new manifest. Discover hooks from root
+`AGENTS.md`: either its direct, explicitly keyed routes or a linked compact mapping
+table. Existing canonical repo docs remain authoritative for local facts. A local
+mapping is an index into those sources, not a second architecture, requirements,
+or verification policy.
+
+| Hook key | Local facts or references to resolve |
+| --- | --- |
+| `artifact-root` | Approved artifact location and naming rules, including epic/child locations |
+| `domain-model` | Concepts, relationships, ownership, boundaries, and current lifecycle/invariants |
+| `schema-backend` | Schema and backend sources, read/write patterns, authorization, validation, and transaction conventions |
+| `interfaces` | Affected UI/API/CLI/capability sources and local interaction, navigation, state, and compatibility conventions |
+| `diagram-conventions` | Existing notation, editable-source and asset conventions; explicit absence if none are prescribed |
+| `requirements` | Canonical requirement sources/IDs and approval authority, or explicit absence of a requirements system |
+| `lifecycle-migrations` | Lifecycle, migration/backfill, deployment, rollback, and operational constraints and their source owners |
+| `verification` | Canonical testing policy, exact commands, scope/prerequisites, and evidence requirements |
+| `rendering` | Configured Markdown-to-HTML executable, actual version and repeatable invocation (including template/style/asset inputs), or `unconfigured` with the repository owner who must choose |
+| `deviations` | Explicit owner-agreed departures from the shared process, with decision reference, justification and exit/revisit condition, or explicit `none` |
+
+Resolve every key for the affected scope before authoring, reviewing, or planning
+from an approach, including combined discovery/design paths. Relevant hooks are
+required; mark an irrelevant hook `N/A` with a change-specific reason. Missing
+information is not `N/A`. Read the referenced docs and affected implementation
+sources, not just the mapping's summaries. Record the resolved references and
+applicability in the approach or linked findings; review checks them and planning
+revalidates them against its accepted package. A missing or contradictory hook
+that affects scope, architecture, safety, verification, or artifact delivery is a
+blocker: name it, identify the responsible owner, and obtain a ruling. Do not guess
+local policy, syntax, paths, or commands. In unattended paths, record the unresolved
+hook and owner question rather than inventing a default or claiming readiness.
+
+A routing clarification can reuse existing facts; it cannot authorize a process
+deviation. Record deviations explicitly with owner agreement, never infer them
+from an absent hook or silently copy local practice into shared policy. Report
+conflicts under the existing repo/human precedence rules; preserve stage and
+approval gates.
+
+`rendering` may honestly be `unconfigured` while adopting this policy. Selecting or
+implementing a renderer is not required for a policy-only PR and this contract
+introduces no renderer implementation or dependencies. When an actual approach
+package is produced, however, unconfigured or unavailable rendering blocks required
+HTML delivery and a clean review until the named owner chooses an executable
+workflow. Verify configured executable/version/invocation against real tooling;
+a tool name, proposed command, or the skill-package renderer is not evidence.
+
+### Compact mapping example
+
+This abbreviated routing example shows the shape, not an architecture or commands
+to copy. A real mapping resolves all ten keys using that repository's actual facts.
+Root `AGENTS.md` can link to the table or contain the same keyed routes directly.
+
+| Hook key | Local reference or explicit status |
+| --- | --- |
+| `artifact-root` | `plans/README.md` — artifact locations and naming |
+| `interfaces` | `docs/interfaces.md` — route onward to the affected interface sources |
+| `verification` | `docs/testing-strategy.md` — commands and prerequisites |
+| `rendering` | `unconfigured`; repository maintainer must choose before an approach package is delivered |
+| `deviations` | `none` — no owner-agreed departures |
+
+Keep source paths and local facts in this mapping; keep the procedure here. Do not
+expand it into a duplicated local approach-authoring guide.
+
 ## Canonical package
 
 | Artifact | Role |
@@ -88,6 +154,11 @@ meaning is not available only through color or image text. Render and visually
 inspect diagrams and wireframes; source syntax alone does not prove readability.
 Record what was inspected and any limitations. Do not claim a mockup proves the
 implemented UI works.
+
+For API changes, show callers and authorization scope, request/response contracts,
+read versus mutation effects, errors, idempotency/concurrency where relevant, and
+version/compatibility behavior. Link existing contracts through `interfaces`;
+distinguish observed behavior from proposals rather than inventing local policy.
 
 For CLI/Pi changes, cover selectors, capability deltas, output/error behavior, and
 compatibility. Include executable syntax only after checking the installed tool's

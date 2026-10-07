@@ -42,6 +42,13 @@ Be collaborative and structured. You drive the process but the human makes the k
 
 ### 1. Read the Brief
 Read `brief.md` to understand goals, constraints, non-goals, and plan level.
+Read [references/design-approach-authoring.md](references/design-approach-authoring.md)
+and resolve its **Required repo hooks** from root `AGENTS.md` direct routes or a
+linked compact mapping before authoring. Read referenced local docs and affected
+sources; record applicability (`N/A` requires a reason). Missing consequential
+hooks block readiness: ask the owner, do not guess. Local mappings supply facts,
+not a duplicated authoring procedure; `rendering: unconfigured` blocks actual
+approach HTML delivery, not adoption of this policy.
 
 ### 2. Propose Research Topics
 Based on the brief, suggest 3-6 research topics. Examples:

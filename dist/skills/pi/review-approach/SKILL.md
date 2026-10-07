@@ -21,7 +21,13 @@ You are a senior architect reviewer. Your job is to find problems in the approac
 
 ## Process
 
-1. **Read context** — Read the brief, full linked canonical package, and findings; enumerate package inputs
+1. **Read context** — Resolve the shared contract's **Required repo hooks** from
+   root `AGENTS.md` direct routes or a linked compact mapping before reviewing.
+   Read referenced local docs and affected sources, and check the approach's hook
+   references/applicability (`N/A` needs a reason). Missing consequential hooks,
+   unagreed deviations, or unconfigured rendering for actual package delivery are
+   blockers, not guessed defaults. Read the brief, full linked canonical package,
+   and findings; enumerate package inputs
 2. **Read existing review** — If `approach_review.md` exists, read it for prior findings and revision inventory
 3. **Review the package** against quality criteria (see below), including readability, semantic consistency, generated-view freshness, navigation, and rendered visual evidence
 4. **Fix safe issues** — Apply obvious clarifications to the authoritative Markdown or asset source, not independent HTML; regenerate and recheck any affected views. Independently verify semantic equivalence for editorial moves between main and reference.

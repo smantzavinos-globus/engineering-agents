@@ -77,7 +77,13 @@ single authority; the per-stage skills do not re-litigate it.
 
 The approach package scope, revision inventory, and generated-view rules are in
 [references/design-approach-authoring.md](references/design-approach-authoring.md).
-This changes no stage or approval gate.
+Before approach authoring, review, or planning (including combined paths), resolve
+that reference's **Required repo hooks** from root `AGENTS.md` direct routes or a
+linked compact mapping. Read referenced local docs and affected sources, not only
+an overlay summary. Relevant hooks are required; `N/A` needs a reason. Missing
+consequential hooks require an owner ruling, never guesses. Local routes supply
+facts, not a duplicated procedure; unconfigured rendering blocks actual approach
+package delivery, not policy adoption. This changes no stage or approval gate.
 
 **Artifact precedence:** briefs, approaches, and plans are reviewable
 artifacts — decisions recorded in conversation are CONTENT for those

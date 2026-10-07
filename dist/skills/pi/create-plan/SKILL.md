@@ -27,7 +27,14 @@ If the brief or approach has ambiguities that would affect task decomposition, v
 
 ## Process
 
-1. **Read context** — Read brief.md, the accepted full approach package and its revision inventory, relevant findings, and (for epic child plans) the parent epic package
+1. **Read context** — Resolve the shared contract's **Required repo hooks** from
+   root `AGENTS.md` direct routes or a linked compact mapping before planning.
+   Read referenced local docs and affected sources; revalidate the accepted
+   package's hook references/applicability (`N/A` needs a reason) and owner-agreed
+   deviations. Missing consequential hooks or unconfigured rendering for actual
+   package delivery block planning; obtain an owner ruling rather than guessing.
+   Read brief.md, the accepted full approach package and its revision inventory,
+   relevant findings, and (for epic child plans) the parent epic package
 2. **Identify verification commands** — Read the repo's test architecture docs (referenced in AGENTS.md) to find exact verification commands
 3. **Break into tasks** — Decompose the approach into ordered, dependency-aware tasks
 4. **Write verification plans** — Each task gets a verification class and explicit Red → Green → Verify steps

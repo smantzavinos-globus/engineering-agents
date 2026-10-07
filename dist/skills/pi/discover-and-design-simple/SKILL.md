@@ -33,7 +33,14 @@ Do not pretend a speed run is still appropriate after that. Hand off.
 
 1. **Restate the request** in a few sentences. Confirm only what is actually
    ambiguous. Do not walk a question checklist.
-2. **Look at the code** that will change. One focused research pass is enough.
+2. **Look at the code** that will change. When producing an approach, first read
+   [references/design-approach-authoring.md](references/design-approach-authoring.md)
+   and resolve its **Required repo hooks** from root `AGENTS.md` direct routes or
+   a linked compact mapping. Read referenced local docs and affected sources;
+   record applicability (`N/A` needs a reason). Missing consequential hooks block
+   readiness: ask the owner, do not guess or duplicate the shared procedure.
+   Unconfigured rendering blocks actual approach package delivery. One focused
+   research pass is enough.
 
 subagent({
   agent: "worker",
