@@ -73,6 +73,22 @@ After research completes:
 - Recommend a direction with rationale
 - Revisit the brief's likely-overlooked needs and state whether research confirms they are required now, safely deferrable, or need a scope decision
 
+### Prototype-first inputs
+
+When the brief records `Path: prototype-first`, read
+`findings/prototype.md` and the prototype branch before designing. The
+approach MUST additionally record:
+
+- **Disposal decision** — `wipe-and-rebuild` (default) or
+  `refine-in-place`. Refine-in-place requires justification: sound
+  architecture and localized, enumerable shortcuts. Record the branch
+  topology that follows (refine branches off `prototype/<slug>`;
+  wipe branches off the default branch).
+- **Test freshness** — all real-build tests are authored fresh,
+  informed by the prototype demo; no prototype-session test carries
+  forward as a contract. Refine-in-place starts with characterization
+  tests around existing prototype behavior, then hardens.
+
 ### 5. Document the Approach
 Once the human confirms the direction, write `approach.md`. See [references/approach-template.md](references/approach-template.md) for the format.
 

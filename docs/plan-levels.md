@@ -254,6 +254,8 @@ Is the change obvious and small (< 30 min)?
 
 When uncertain about the level, **start at Standard**. The brief and research stages will reveal whether the change is actually simple (and you can abbreviate) or actually epic-scale (and you should promote).
 
+These levels describe the **real build**. `prototype-first` is an entry path, not a level: a throwaway prototype precedes the brief, and the build that follows is still planned and executed at one of the levels above.
+
 ---
 
 ## Artifact Responsibilities

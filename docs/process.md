@@ -41,6 +41,21 @@ If work reveals a missing, unclear, or conflicting requirement that affects curr
 
 The standard workflow for implementing new capabilities, enhancements, refactors, or integrations.
 
+### Prototype-first entry (optional)
+
+Work whose requirements are discovery-shaped — user-facing surfaces where
+"correct" can only be recognized by seeing it — may enter through a
+**prototype-first session** instead of starting at the brief: a
+human-paired, timeboxed (≤ 1 day) throwaway prototype on a
+`prototype/<slug>` branch, ending with a runnable demo and a
+`PROTOTYPE.md` (verdict: build / build-with-changes / don't build).
+The prototype never merges; it feeds the pipeline below as primary
+evidence (`findings/prototype.md` at the brief), and the approach records
+the disposal decision — **wipe-and-rebuild (default)** or
+refine-in-place with justification. All real-build tests are authored
+fresh; no prototype-session test carries forward as a contract. See the
+`prototype-first` skill for the session contract.
+
 ### Stages
 
 ```

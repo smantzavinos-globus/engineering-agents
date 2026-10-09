@@ -25,7 +25,7 @@ If the brief or approach has ambiguities that would affect task decomposition, v
 
 ## Process
 
-1. **Read context** — Read brief.md, approach.md, relevant findings, and (for epic child plans) the parent epic context
+1. **Read context** — Read brief.md, approach.md, relevant findings, and (for epic child plans) the parent epic context. For `Path: prototype-first` briefs, `findings/prototype.md` is a findings file like any other — and the approach's disposal decision (wipe-and-rebuild vs refine-in-place) becomes explicit early tasks: wipe path → a check-class task resetting the working tree to the default-branch state; refine path → characterization tests around prototype behavior as the first tasks.
 2. **Identify verification commands** — Read the repo's test architecture docs (referenced in AGENTS.md) to find exact verification commands
 3. **Break into tasks** — Decompose the approach into ordered, dependency-aware tasks
 4. **Write verification plans** — Each task gets a verification class and explicit Red → Green → Verify steps

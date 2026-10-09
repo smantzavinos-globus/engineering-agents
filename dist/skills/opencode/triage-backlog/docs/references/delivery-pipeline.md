@@ -44,7 +44,7 @@ These extend the [recommended vocabulary](task-tracking.md#recommended-vocabular
 | Status | `Inbox`, `Clarification needed`, `Ready`, `Up next`, `In progress`, `Awaiting approval`, `In review`, `Blocked`, `Icebox`, `Done`, `Canceled` | See transitions |
 | Stage | `Design`, `Plan`, `Execute`, `Research`, `PR` | The working agent, at each stage boundary. Fast-path starts at `Execute`; spikes use `Research` |
 | Autonomy | `gated` (default when empty), `auto` | Human only |
-| Track | `fast-path`, `standard-implementation`, `analysis-spike`, `docs-process` (exact spellings) | Triage; a working agent may promote fast-path to standard |
+| Track | `fast-path`, `standard-implementation`, `analysis-spike`, `docs-process` (exact spellings) | Triage; a working agent may promote fast-path to standard. Prototype-first entries run as `standard-implementation`; the human-paired prototype session happens before Stage `Design` and never merges |
 | Priority, Kind, Origin | As in task tracking | Triage fills gaps |
 
 `Awaiting approval` means an agent reached a gate and is waiting on the human.
