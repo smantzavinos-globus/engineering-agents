@@ -76,6 +76,12 @@ _No items yet._
 - Source: Independent review of PR #24 (finding F1, 2026-09-30); contract note added in the same PR.
 - Notes: Deliberately deferred — no swept repo currently runs an advisory check, so the env would be dead config. Revisit when the first advisory check appears.
 
+### TASK-0007 — Fix two stale specs failing on clean main (repo-readiness-docs, skill-content)
+- Status: Inbox
+- Summary: Two specs fail on a clean `origin/main` checkout (verified on a pristine stash, 2026-10-09): (1) `tests/specs/repo-readiness-docs-spec.sh` expects `docs/hermes/README.md` to contain "do **not** install rendered copies" — the README no longer carries that phrase; (2) `tests/specs/skill-content-spec.sh` expects `review-code/SKILL.md` to contain "Team mode" + "per-task verification evidence" and expects `execution-orchestrator`/`execute-task`/`create-worklog`/`create-plan`/`review-plan`/`review-code` to carry `harnesses: [opencode]` — none of the six skills restrict harnesses anymore. Both specs are stale relative to main's own content (post-ADR-0004/0006 world), so `tests/run-tests.sh fast`/`all` exit 1 on main regardless of branch content and mask real regressions in those two specs.
+- Source: feat/prototype-first-entry PR (author self-review, verification rows); baseline proof: stashed clean tree, same 8 failures (1 + 7).
+- Notes: Fix direction: either update the specs to the post-code-mode contract or restore the asserted content in the docs/skills — needs a decision on which side is the intended truth. Not caused by this PR; disclosed here per the PR body's Testing overview.
+
 ## Clarification needed
 
 _No items yet._
