@@ -84,11 +84,12 @@ else
   fail "review-code does not reference plan"
 fi
 
-if grep -Fq 'Team mode' "$REPO_ROOT/skills/review-code/SKILL.md" \
-  && grep -Fq 'per-task verification evidence' "$REPO_ROOT/skills/review-code/SKILL.md"; then
-  pass "review-code distinguishes execution modes and checks per-task verification evidence"
+# Team mode was retired (ADR-0006); review-code no longer distinguishes
+# execution modes, but it still requires per-task verification evidence.
+if grep -Fq 'per-task verification evidence' "$REPO_ROOT/skills/review-code/SKILL.md"; then
+  pass "review-code checks per-task verification evidence"
 else
-  fail "review-code is missing execution-mode distinction or verification-evidence semantics"
+  fail "review-code is missing per-task verification evidence semantics"
 fi
 
 
@@ -106,9 +107,8 @@ else
   fail "Plan template missing"
 fi
 
-# Team mode was replaced by code-mode execution: the Pi-only team skills and the
-# team task reviewer are removed, and the retired orchestration skills are kept
-# for OpenCode only so the Pi surface stays small.
+# Team mode was replaced by code-mode execution: the Pi-only team skills and
+# the team task reviewer are removed.
 for gone in pi-team-plan pi-team-lead pi-team-worker; do
   if [[ ! -e "$REPO_ROOT/skills/$gone" ]]; then
     pass "${gone} is removed with team mode"
@@ -121,12 +121,15 @@ if [[ ! -e "$REPO_ROOT/agents/pi-team-reviewer.md" ]]; then
 else
   fail "pi-team-reviewer agent is removed with team mode"
 fi
-for oc_only in execution-orchestrator execute-task create-worklog \
+# Team mode and the wave pipeline were retired (ADR-0006): the six
+# sequential-pipeline skills are harness-neutral — they carry no
+# `harnesses:` restriction and render to every harness.
+for neutral in execution-orchestrator execute-task create-worklog \
                 create-plan review-plan review-code; do
-  if grep -Fq 'harnesses: [opencode]' "$REPO_ROOT/skills/$oc_only/SKILL.md"; then
-    pass "${oc_only} is retained for OpenCode only"
+  if ! grep -q '^harnesses:' "$REPO_ROOT/skills/$neutral/SKILL.md"; then
+    pass "${neutral} is harness-neutral (renders to every harness)"
   else
-    fail "${oc_only} must be restricted to OpenCode after the Pi code-mode switch"
+    fail "${neutral} must not restrict harnesses (harness-neutral since the wave retirement)"
   fi
 done
 
