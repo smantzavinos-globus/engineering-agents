@@ -115,6 +115,21 @@ If the conversation produces useful ideas that are explicitly out of scope for t
 
 If no repo backlog mechanism is documented, ask before creating any new backlog file or issue.
 
+## Arriving from prototype-first
+
+If the brief records `Path: prototype-first`:
+
+- The prototype demo + `findings/prototype.md` replace the Socratic
+  interview as primary evidence — do not re-run the interview from
+  scratch. Ask only about contradictions or blanks the demo left.
+- The prototype shows what was thought to build and silently ignores
+  everything that wasn't. Give the mandatory overlooked-needs scan
+  extra weight on error paths, failure modes, and lifecycle the
+  prototype never exercised.
+- Record `Path: prototype-first` in the brief, and carry the prototype
+  session's disposal recommendation forward as a decision for Design —
+  not a settled fact.
+
 ## Process Ownership
 
 You drive this conversation. The human should feel guided, not like they're managing you. At each step:

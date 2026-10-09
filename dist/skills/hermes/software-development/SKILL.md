@@ -15,6 +15,12 @@ intake → BRIEF → RESEARCH → APPROACH → APPROACH REVIEW → PLAN → PLAN
        → (human approval) → WORKLOG → EXECUTE (per-task) → CODE REVIEW → PR REVIEW
 ```
 
+There are two ways to arrive at BRIEF: talking
+(`discovery`/`discover-and-design*`) or building-to-learn
+(`prototype-first` — a human-paired throwaway prototype whose branch +
+`PROTOTYPE.md` feed the brief as primary evidence). The prototype is an
+entry variant only; everything from BRIEF onward is identical.
+
 Stage skills (universal — the same pipeline for every harness):
 
 | Stage | Skill |
@@ -107,7 +113,11 @@ escalating mid-execution is cheap, de-escalating is not.
 
 - **New work item** (no brief): start at `discovery`, or the combined
   `discover-and-design` / `discover-and-design-simple` variants per the
-  Brief row above.
+  Brief row above. When requirements are discovery-shaped for a
+  user-facing surface — the fastest way to specify the work is to see
+  it working — the human may choose the `prototype-first` entry instead:
+  a human-paired throwaway prototype ends with `PROTOTYPE.md`, which
+  enters the brief as primary evidence.
 - **Epic-scale work**: the brief/approach become an epic skeleton
   (`epic.md`, numbered child plans); use `review-epic` at the epic layer.
   Child plans enter at PLAN in the table above, gated by the epic approach.
@@ -129,6 +139,7 @@ mechanism, documented in a defined place:
 | Per-task review (yes/no per task) | At plan creation | Agent proposes per task risk (a `no` on schema/auth/migration tasks is a review finding); human confirms at plan approval | plan.md task graph |
 | Approval gates (approval-gate / auto-continue / detached) | At execution start | Human decides (default: approval-gate) | Worklog header |
 | Contract freezes | When a contract-task's tests are frozen | Agent-determines; changing frozen tests afterward requires human approval | plan.md freeze schedule + worklog |
+| Prototype disposal (wipe-and-rebuild vs refine-in-place; wipe is the default) | At approach review, for `Path: prototype-first` briefs | `design` records it with rationale; `review-approach` checks it | approach.md decisions table |
 
 ## Autonomy defaults (harness/human may override per plan)
 
