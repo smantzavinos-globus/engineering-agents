@@ -535,6 +535,30 @@ def deliver(reported):
             out.append(f"{who} [{what}] {r.get('summary', '').strip()} {r.get('url', '')}".strip())
 
 
+def load_reported():
+    """Read the delivered-results ledger, rebuilding it if it is missing data or corrupt.
+
+    A corrupt ledger must not stop the sweep. Rebuild it from the result files
+    already on disk: they were delivered before the corruption, so marking them
+    reported avoids sending old verdicts again.
+    """
+    try:
+        data = json.loads(REPORTED.read_text()) if REPORTED.exists() else []
+        if isinstance(data, list):
+            return set(data)
+    except (ValueError, OSError):
+        pass
+    print(f"warning: {REPORTED} unreadable; rebuilt from existing results", file=sys.stderr)
+    return {f.name for f in RESULTS.glob("*.json")}
+
+
+def save_reported(reported):
+    """Write the ledger atomically so a killed tick cannot leave it truncated."""
+    tmp = REPORTED.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(sorted(reported)))
+    tmp.replace(REPORTED)
+
+
 def main(argv):
     job = argv[1] if len(argv) > 1 else ""
     if job not in ("triage", "work", "hygiene"):
@@ -549,7 +573,7 @@ def main(argv):
     for d in (STATE, RESULTS, LOGS):
         d.mkdir(parents=True, exist_ok=True)
     recs = [json.loads(l) for l in DISPATCH.read_text().splitlines() if l.strip()] if DISPATCH.exists() else []
-    reported = set(json.loads(REPORTED.read_text())) if REPORTED.exists() else set()
+    reported = load_reported()
     try:
         deliver(reported)
         items = list_items()
@@ -561,7 +585,7 @@ def main(argv):
         out.append(f"Pipeline dispatch error ({job}): {e}")
         code = 1
     if not DRY:
-        REPORTED.write_text(json.dumps(sorted(reported)))
+        save_reported(reported)
     if out:
         print("\n".join(out))
     return code

@@ -214,5 +214,32 @@ class Mentions(unittest.TestCase):
         self.assertEqual(d.mentions(cs, ("smantzavinos", "agent"), set()), (None, None))
 
 
+class ReportedLedger(unittest.TestCase):
+    def setUp(self):
+        d.RESULTS.mkdir(parents=True, exist_ok=True)
+        for f in d.RESULTS.glob("*.json"):
+            f.unlink()
+        (d.RESULTS / "old.json").write_text("{}")
+        if d.REPORTED.exists():
+            d.REPORTED.unlink()
+
+    def test_missing_is_empty(self):
+        self.assertEqual(d.load_reported(), set())
+
+    def test_empty_file_rebuilds_from_results(self):
+        d.REPORTED.write_text("")
+        self.assertEqual(d.load_reported(), {"old.json"})
+
+    def test_garbage_and_non_list_rebuild(self):
+        for bad in ("{not json", '{"a": 1}'):
+            d.REPORTED.write_text(bad)
+            self.assertEqual(d.load_reported(), {"old.json"})
+
+    def test_round_trip_is_atomic(self):
+        d.save_reported({"b", "a"})
+        self.assertEqual(d.load_reported(), {"a", "b"})
+        self.assertFalse(d.REPORTED.with_suffix(".json.tmp").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

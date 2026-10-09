@@ -425,6 +425,30 @@ def sweep_repo(repo, recs, reported):
             record(recs, rec)
 
 
+def load_reported():
+    """Read the delivered-results ledger, rebuilding it if it is missing data or corrupt.
+
+    A corrupt ledger must not stop the sweep. Rebuild it from the result files
+    already on disk: they were delivered before the corruption, so marking them
+    reported avoids sending old verdicts again.
+    """
+    try:
+        data = json.loads(REPORTED.read_text()) if REPORTED.exists() else []
+        if isinstance(data, list):
+            return set(data)
+    except (ValueError, OSError):
+        pass
+    print(f"warning: {REPORTED} unreadable; rebuilt from existing results", file=sys.stderr)
+    return {f.name for f in RESULTS.glob("*.json")}
+
+
+def save_reported(reported):
+    """Write the ledger atomically so a killed tick cannot leave it truncated."""
+    tmp = REPORTED.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(sorted(reported)))
+    tmp.replace(REPORTED)
+
+
 def main():
     if not REPOS:
         print("PR sweep error: set PR_SWEEP_REPOS")
@@ -432,7 +456,7 @@ def main():
     for d in (STATE, RESULTS, LOGS):
         d.mkdir(parents=True, exist_ok=True)
     recs = [json.loads(l) for l in DISPATCH.read_text().splitlines() if l.strip()] if DISPATCH.exists() else []
-    reported = set(json.loads(REPORTED.read_text())) if REPORTED.exists() else set()
+    reported = load_reported()
 
     # Deliver finished sessions: READY / BLOCKED / ESCALATE / babysit exits. FIX stays silent.
     for f in sorted(RESULTS.glob("*.json")):
@@ -454,7 +478,7 @@ def main():
         except Exception as e:  # noqa: BLE001 — one repo failing must not starve the others
             errors.append(f"PR sweep error ({repo}): {e}")
     if not DRY:
-        REPORTED.write_text(json.dumps(sorted(reported)))
+        save_reported(reported)
     lines = out + errors
     if lines:
         print("\n".join(lines))
