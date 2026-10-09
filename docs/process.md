@@ -56,6 +56,17 @@ refine-in-place with justification. All real-build tests are authored
 fresh; no prototype-session test carries forward as a contract. See the
 `prototype-first` skill for the session contract.
 
+The session ends with the branch pushed and a linked backlog item
+carrying a handoff comment. The accepted demo is the definition of done
+for behavior: its numbered acceptance scenarios become brief success
+criteria and fresh e2e tests, and the PR shows parity. When the human
+asks to implement it (or the item is `Autonomy: auto`), the agent runs
+design → plan → execute → PR without Design or Plan gates, stopping only
+on the stop triggers in the `software-development` skill's Prototype
+handoff (refine-in-place, scenario conflicts, migrations, auth/security,
+new dependencies, public contract changes, behavior forks beyond the
+demo, epic scope).
+
 ### Stages
 
 ```

@@ -1,22 +1,33 @@
 # PROTOTYPE — <slug>
 
-**Branch:** `prototype/<slug>` · **Date:** YYYY-MM-DD · **Session:** human-paired prototype-first
+**Branch:** `prototype/<slug>` · **Item:** <#N or tracker ID> · **Date:** YYYY-MM-DD · **Session:** human-paired prototype-first
 
 ## Verdict
 
 <!-- One of: build / build-with-changes / don't build -->
 <!-- A "don't build" verdict is a successful session. Say why. -->
+<!-- build-with-changes: list each change; each becomes a success criterion
+     alongside the scenarios below. -->
 
 **Verdict:** <build | build-with-changes | don't build>
 
 **One-line result:** <what the demo shows>
 
-## What it demonstrates
+**Changes required (build-with-changes only):**
 
-<!-- The behaviors/scenarios the prototype proves out. Point at what to click/run. -->
+- <change>
 
-- <behavior 1>
-- <behavior 2>
+## Acceptance scenarios
+
+<!-- The definition of done for behavior. Numbered, observable, written as
+     the human accepted them (not as first attempted). Each one becomes a
+     brief success criterion and at least one fresh e2e/acceptance test in
+     the real build. Name where it applies ("on every page", "for all item
+     kinds") — the prototype may have only done one. -->
+
+1. **<short name>** — Given <state>, when <action>, then <visible result>.
+   Applies to: <scope>. Prototype coverage: <full | partial: what was skipped>.
+2. ...
 
 ## How to run it
 
@@ -24,7 +35,7 @@
 <exact commands>
 ```
 
-<Screenshots for UI work: attach or link paths.>
+Evidence: <paths under prototype-evidence/ — screenshots for UI work>
 
 ## What is faked / hardcoded
 
@@ -53,6 +64,7 @@
 ## Open questions for the brief
 
 <!-- Things the demo surfaced but did not settle: overlooked needs, error paths,
-     lifecycle, scale questions. -->
+     lifecycle, scale questions. Mark any the human considers a design decision
+     they want to approve as **[owner]**. -->
 
 - <question>

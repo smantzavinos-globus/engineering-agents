@@ -32,6 +32,15 @@ rules apply throughout. States, gates and the dispatch contract (§7) are in
 On `start`, create the plan directory under the repo's plan root with a name
 ending in `-item<N>`.
 
+**Prototype items.** If the item carries a prototype handoff marker
+(`<!-- prototype branch=prototype/<slug> ... -->`), follow the
+`software-development` skill's Prototype handoff: copy `PROTOTYPE.md` from
+that branch into `findings/prototype.md`, design from it, and treat its
+acceptance scenarios as success criteria. With `Autonomy: auto` there is no
+Design gate either — continue through Plan and Execute to the PR unless one
+of that section's stop triggers fires (post an Escalation gate). On the
+refine-in-place path, the item branch starts from the prototype branch.
+
 ## Steps by track
 
 **fast-path** — Stage `Execute`: implement in the worktree with the repo's
