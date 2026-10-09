@@ -540,7 +540,10 @@ def load_reported():
 
     A corrupt ledger must not stop the sweep. Rebuild it from the result files
     already on disk: they were delivered before the corruption, so marking them
-    reported avoids sending old verdicts again.
+    reported avoids sending old notifications again. The rebuild cannot recover
+    the synthetic report_once keys (orphan:/stuck:/fails:/nogate:/pickfail:/wt:/err:),
+    so a one-shot report may fire one extra time after a corruption; keys
+    re-populate on the next save.
     """
     try:
         data = json.loads(REPORTED.read_text()) if REPORTED.exists() else []
@@ -559,6 +562,26 @@ def save_reported(reported):
     tmp.replace(REPORTED)
 
 
+def load_dispatch():
+    """Read the dispatch ledger, skipping lines a killed tick left partial.
+
+    A truncated trailing line must not kill the tick: the lost record can at
+    worst re-dispatch one pipeline item, while a crash here leaves every later
+    tick dead before it reads the tracker.
+    """
+    if not DISPATCH.exists():
+        return []
+    recs = []
+    for line in DISPATCH.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            recs.append(json.loads(line))
+        except ValueError:
+            print(f"warning: {DISPATCH}: skipping corrupt line", file=sys.stderr)
+    return recs
+
+
 def main(argv):
     job = argv[1] if len(argv) > 1 else ""
     if job not in ("triage", "work", "hygiene"):
@@ -572,7 +595,7 @@ def main(argv):
         return 1
     for d in (STATE, RESULTS, LOGS):
         d.mkdir(parents=True, exist_ok=True)
-    recs = [json.loads(l) for l in DISPATCH.read_text().splitlines() if l.strip()] if DISPATCH.exists() else []
+    recs = load_dispatch()
     reported = load_reported()
     try:
         deliver(reported)

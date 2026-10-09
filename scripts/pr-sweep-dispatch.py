@@ -430,7 +430,10 @@ def load_reported():
 
     A corrupt ledger must not stop the sweep. Rebuild it from the result files
     already on disk: they were delivered before the corruption, so marking them
-    reported avoids sending old verdicts again.
+    reported avoids sending old verdicts again. The rebuild cannot recover the
+    synthetic one-shot keys (stuck:/ci:/fails:/botcap:), so a one-shot report
+    may fire one extra time after a corruption; keys re-populate on the next
+    save, and label transitions keep re-deriving from GitHub state.
     """
     try:
         data = json.loads(REPORTED.read_text()) if REPORTED.exists() else []
@@ -449,13 +452,33 @@ def save_reported(reported):
     tmp.replace(REPORTED)
 
 
+def load_dispatch():
+    """Read the dispatch ledger, skipping lines a killed tick left partial.
+
+    A truncated trailing line must not kill the tick: the lost record can at
+    worst re-dispatch one reviewer (the result-file check bounds that), while
+    a crash here leaves the sweep dark for every later tick.
+    """
+    if not DISPATCH.exists():
+        return []
+    recs = []
+    for line in DISPATCH.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            recs.append(json.loads(line))
+        except ValueError:
+            print(f"warning: {DISPATCH}: skipping corrupt line", file=sys.stderr)
+    return recs
+
+
 def main():
     if not REPOS:
         print("PR sweep error: set PR_SWEEP_REPOS")
         return 1
     for d in (STATE, RESULTS, LOGS):
         d.mkdir(parents=True, exist_ok=True)
-    recs = [json.loads(l) for l in DISPATCH.read_text().splitlines() if l.strip()] if DISPATCH.exists() else []
+    recs = load_dispatch()
     reported = load_reported()
 
     # Deliver finished sessions: READY / BLOCKED / ESCALATE / babysit exits. FIX stays silent.

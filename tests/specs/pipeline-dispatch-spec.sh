@@ -187,6 +187,18 @@ check  "$OUT" "Awaiting approval for > 3 days: #50" "hygiene: stale gate is repo
 check  "$OUT" "Blocked for > 3 days: #51" "hygiene: stale blocker is reported"
 check  "$OUT" "no pr: label): #9" "hygiene: PR outside the review flow is reported"
 
+# --- a corrupt reported.json must not kill the tick (the ledger rebuilds from results)
+echo '[]' > "$TMP/items-empty.json"
+mkdir -p "$TMP/state/results"
+printf 'old.json' > "$TMP/state/reported.json"
+echo '{}' > "$TMP/state/results/old.json"
+OUT="$(run hygiene ITEMS="$TMP/items-empty.json")"
+if grep -Fq "Traceback" <<<"$OUT" || grep -Fq "json.decoder.JSONDecodeError" <<<"$OUT"; then
+  FAIL=$((FAIL+1)); echo "  FAIL: a corrupt reported.json crashes the tick" >&2
+else
+  PASS=$((PASS+1)); echo "  PASS: corrupt reported.json: tick survives (rebuilt from results)"
+fi
+
 # --- configuration errors are loud
 OUT="$(env -u PIPELINE_OWNERS PIPELINE_DRY=1 PIPELINE_REPO=o/r PIPELINE_LIST_CMD=x PIPELINE_MOVE_CMD=y PR_AGENT_HANDLE=a HERMES_HOME="$TMP" "$PY" "$ROOT/scripts/pipeline-dispatch.py" work || true)"
 check  "$OUT" "PIPELINE_OWNERS" "config: a missing owner allowlist is an error, not open access"

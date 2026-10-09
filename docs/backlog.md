@@ -76,6 +76,12 @@ _No items yet._
 - Source: Independent review of PR #24 (finding F1, 2026-09-30); contract note added in the same PR.
 - Notes: Deliberately deferred — no swept repo currently runs an advisory check, so the env would be dead config. Revisit when the first advisory check appears.
 
+### TASK-0007 — Unit-test the pipeline-dispatch.py copy of the shared sweep helpers
+- Status: Inbox
+- Summary: `scripts/pipeline-dispatch.py` carries duplicated copies of the `reported.json` / `dispatches.jsonl` helpers from `scripts/pr-sweep-dispatch.py` (the repo's copy-one-file install model, documented in each script header). The Python unit suite imports only `pr-sweep-dispatch.py`; the pipeline copy is covered only where `tests/specs/pipeline-dispatch-spec.sh` happens to exercise it (now including the corrupt-ledger rebuild case from PR #38). Add direct unit coverage for the pipeline copy so future drift between the two files fails a test instead of surviving silently.
+- Source: Independent review of PR #38 (finding F3, 2026-10-09); https://github.com/smantzavinos/engineering-agents/pull/38
+- Notes: Either import the pipeline script the same way the unit suite imports `pr-sweep-dispatch.py`, or (better, if the duplication is ever consolidated) extract a shared module both scripts embed at install time.
+
 ## Clarification needed
 
 _No items yet._

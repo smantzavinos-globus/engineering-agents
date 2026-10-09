@@ -4,6 +4,7 @@ Replaces the claimState checks that lived with the retired monitor script.
 Requirement: FR-001
 """
 import importlib.util
+import json
 import os
 import pathlib
 import tempfile
@@ -222,6 +223,8 @@ class ReportedLedger(unittest.TestCase):
         (d.RESULTS / "old.json").write_text("{}")
         if d.REPORTED.exists():
             d.REPORTED.unlink()
+        if d.DISPATCH.exists():  # the dispatches.jsonl tests must not see live sweep state
+            d.DISPATCH.unlink()
 
     def test_missing_is_empty(self):
         self.assertEqual(d.load_reported(), set())
@@ -239,6 +242,30 @@ class ReportedLedger(unittest.TestCase):
         d.save_reported({"b", "a"})
         self.assertEqual(d.load_reported(), {"a", "b"})
         self.assertFalse(d.REPORTED.with_suffix(".json.tmp").exists())
+
+    def test_dispatch_ledger_partial_tail_is_skipped(self):
+        """A killed tick can leave a partial trailing line; the ledger must load anyway (F2)."""
+        d.DISPATCH.write_text(json.dumps({"kind": "review", "pr": 1}) + "\n" + '{"kind": "rev')
+        recs = d.load_dispatch()
+        self.assertEqual([r["kind"] for r in recs], ["review"])
+
+    def test_dispatch_ledger_corrupt_line_is_skipped(self):
+        """A corrupt middle line (or a whole corrupt file) is dropped, not fatal (F2)."""
+        d.DISPATCH.write_text("{not json}\n" + json.dumps({"kind": "babysit", "pr": 2}) + "\n{broken")
+        self.assertEqual([r["kind"] for r in d.load_dispatch()], ["babysit"])
+
+    def test_dispatch_ledger_blank_lines_and_missing_file(self):
+        self.assertEqual(d.load_dispatch(), [])
+        d.DISPATCH.write_text("\n  \n" + json.dumps({"pr": 3}) + "\n\n")
+        self.assertEqual([r["pr"] for r in d.load_dispatch()], [3])
+
+    def test_rebuild_drops_synthetic_one_shot_keys(self):
+        """Rebuild recovers only result-file names; one-shot keys can re-fire once (F4)."""
+        d.REPORTED.write_text("{not json")
+        rebuilt = d.load_reported()
+        self.assertEqual(rebuilt, {"old.json"})  # result files are recovered...
+        self.assertFalse(any(k.split(":")[0] in ("stuck", "ci", "fails", "botcap") for k in rebuilt),
+                         "synthetic one-shot keys must not be reconstructible from result files")
 
 
 if __name__ == "__main__":
