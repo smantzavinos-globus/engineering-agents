@@ -213,10 +213,13 @@ if [[ -n "$PI_OUT" && -d "$PI_OUT" ]]; then
     fi
   done
 
-  # Retired with team mode: OpenCode keeps these, Pi must not install them.
-  for skill in create-worklog execute-task execution-orchestrator \
-               create-plan review-plan review-code \
-               pi-team-plan pi-team-lead pi-team-worker; do
+  # Retired: pi-team-* went away with team mode. The six sequential-pipeline
+  # skills (create-worklog, execute-task, execution-orchestrator, create-plan,
+  # review-plan, review-code) are NOT retired for Pi: owner PR#25 ruling,
+  # executed in a597054, dropped their harness restriction — Pi installs every
+  # rendered skill in dist/skills/pi, so they must be present (covered by the
+  # link loop above).
+  for skill in pi-team-plan pi-team-lead pi-team-worker; do
     if [[ -e "$PI_FILES/.pi/agent/skills/$skill" ]]; then
       fail "Pi module must not link retired skill: $skill"
     else

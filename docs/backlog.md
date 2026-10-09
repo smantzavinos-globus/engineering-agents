@@ -44,7 +44,10 @@ The `TASK-XXXX` placeholder describes the required stable ID format. Replace `XX
 
 ## Up next
 
-_No items yet._
+### TASK-0008 — Fix README skills-table count and stage coverage
+- Status: Up next
+- Summary: `README.md` "Skills (`skills/`)" section says "14 skills"; the canonical tree now has 26. The table itself also omits newer skills (`prototype-first`, `assess-repo`, `babysit-pr`, `configure-opencode`, `configure-pi`, `skill-sync`, `triage-backlog`). Update the count, table rows, and stage labels to current content truth.
+- Source: PR #39 review finding F3 (MINOR, pre-existing staleness made visible by the install-all change).
 
 ## Ready
 

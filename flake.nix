@@ -242,12 +242,12 @@
           test -f "$cfgd/opencode/agents/discovery.md" || { echo "MISSING: agents/discovery.md"; exit 1; }
           test -f "$cfgd/opencode/agents/design.md" || { echo "MISSING: agents/design.md"; exit 1; }
           test -f "$cfgd/opencode/agents/execute.md" || { echo "MISSING: agents/execute.md"; exit 1; }
-          test -d "$cfgd/opencode/skills/discovery" || { echo "MISSING: skills/discovery"; exit 1; }
-          test -d "$cfgd/opencode/skills/design" || { echo "MISSING: skills/design"; exit 1; }
-          test -d "$cfgd/opencode/skills/execution-orchestrator" || { echo "MISSING: skills/execution-orchestrator"; exit 1; }
-          test -d "$cfgd/opencode/skills/research" || { echo "MISSING: skills/research"; exit 1; }
-          test -d "$cfgd/opencode/skills/create-plan" || { echo "MISSING: skills/create-plan"; exit 1; }
-          test -d "$cfgd/opencode/skills/execute-task" || { echo "MISSING: skills/execute-task"; exit 1; }
+          # Every rendered OpenCode skill must be installed (no hardcoded
+          # subset — mirrors the Pi check below; a rendered-but-unlinked
+          # skill fails here).
+          for s in $(ls ${self}/dist/skills/opencode); do
+            test -d "$cfgd/opencode/skills/$s" || { echo "MISSING: skills/$s"; exit 1; }
+          done
           touch $out
         '';
 
