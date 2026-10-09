@@ -164,7 +164,7 @@ handoff comment names the branch), run the rest of the pipeline end to end:
    mapping each acceptance scenario to its test(s) and, for UI, evidence
    of the real build next to the prototype's; additions beyond the demo
    listed separately. Merge stays human. After merge the prototype branch
-   is deleted (wipe path) by whoever merges or the next sweep.
+   is deleted (wipe path) with the owner's OK.
 - **Epic-scale work**: the brief/approach become an epic skeleton
   (`epic.md`, numbered child plans); use `review-epic` at the epic layer.
   Child plans enter at PLAN in the table above, gated by the epic approach.
