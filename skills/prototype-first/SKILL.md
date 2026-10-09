@@ -79,9 +79,13 @@ acceptance scenarios.
   — that converts throwaway code into unreviewed production code, the
   worst of both worlds. Instead, **note each hack as you make it**; the
   list becomes PROTOTYPE.md's "faked" and "shortcuts" sections.
+- **Keep a running change list.** Each distinct change the session makes
+  (e.g. "C1: show tests inside the trace table", "C2: make every trace
+  row expandable") gets an entry with its objective, before/after, and
+  the files it touched. It becomes PROTOTYPE.md's "What was prototyped".
 - When the human reacts to the demo ("no, put it inside the table"),
-  update both the code and the acceptance-scenario bullets. The final
-  bullets describe the accepted behavior, not the first attempt.
+  update the code, the change list, and the acceptance-scenario bullets.
+  They describe the accepted behavior, not the first attempt.
 
 ## Branch contract
 
@@ -108,8 +112,10 @@ The session is not done until ALL of these exist:
    under `prototype-evidence/` on the prototype branch.
 2. **`PROTOTYPE.md`** at the repo root of the prototype branch, from
    [references/prototype-template.md](references/prototype-template.md):
-   verdict (**build / build-with-changes / don't build**), numbered
-   acceptance scenarios, how to run it, what is faked, known shortcuts,
+   verdict (**build / build-with-changes / don't build**), **what was
+   prototyped** (each change, one by one, with its objective, before/after
+   and where it lives), numbered acceptance scenarios (each tied to a
+   change), how to run it, what is faked, known shortcuts,
    disposal recommendation, open questions, and the backlog item ID.
 3. **The pushed branch.**
 4. **A linked backlog item** (via the `backlog` skill's tracker
@@ -131,6 +137,9 @@ Handoff comment (one comment, so a fresh session finds everything):
 **Prototype handoff** — verdict: <build | build-with-changes | don't build>
 
 - Branch: `prototype/<slug>` @ <sha7>
+- Changes prototyped:
+  - C1 — <short name>: <objective>
+  - C2 — ...
 - Spec: `PROTOTYPE.md` on that branch (<N> acceptance scenarios)
 - Run: <one-line command>
 - Disposal recommendation: <wipe-and-rebuild | refine-in-place> — <why>
@@ -148,8 +157,10 @@ What happens next is in the `software-development` skill (Prototype
 handoff) and, for dispatched items, `work-item`. In short:
 
 1. `PROTOTYPE.md` is copied into the plan directory as
-   `findings/prototype.md`; the brief records `Path: prototype-first` and
-   turns every acceptance scenario into a success criterion.
+   `findings/prototype.md`; the brief records `Path: prototype-first`,
+   takes its goals from "What was prototyped" (one goal per change,
+   stated as its objective), and turns every acceptance scenario into a
+   success criterion.
 2. The brief's overlooked-needs scan pays extra attention to error paths,
    failure modes, and lifecycle the prototype never exercised.
 3. Approach records the disposal decision and branch topology.

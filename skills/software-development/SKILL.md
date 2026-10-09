@@ -134,7 +134,8 @@ handoff comment names the branch), run the rest of the pipeline end to end:
    stop and say what is missing. `don't build` → stop.
 2. **Design** with `discover-and-design` in unattended mode, the prototype
    as the conversation: `findings/prototype.md` = PROTOTYPE.md; the brief
-   records `Path: prototype-first`; **every acceptance scenario (and every
+   records `Path: prototype-first`; each change in "What was prototyped"
+   becomes a goal (its objective, not its hack); **every acceptance scenario (and every
    build-with-changes change) is a success criterion**, worded as accepted.
    The overlooked-needs scan adds error paths, lifecycle and safety the
    prototype skipped — additions only, never dropping or reinterpreting a

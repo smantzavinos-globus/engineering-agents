@@ -13,9 +13,27 @@
 
 **One-line result:** <what the demo shows>
 
-**Changes required (build-with-changes only):**
+**Required differences from the prototype (build-with-changes only):**
 
-- <change>
+- <what the real build must do differently from what was prototyped>
+
+## What was prototyped
+
+<!-- The changes made in this session, one entry per distinct change — there
+     is usually more than one. This is the primary record of intent: the code
+     shows WHAT was done (hackily); this says what it was FOR, so the real
+     build reproduces the goal, not the hack. Describe each change as a
+     product/user-facing change, then point at where it lives. -->
+
+### C1 — <short name of the change>
+
+- **Objective:** <what this change is meant to achieve, in user terms>
+- **Before:** <how it worked before the prototype>
+- **After (as accepted):** <how it works in the prototype>
+- **Where:** <files/components touched on the prototype branch>
+- **Scenarios:** <acceptance scenario numbers that demonstrate it>
+
+### C2 — ...
 
 ## Acceptance scenarios
 
@@ -25,7 +43,9 @@
      the real build. Name where it applies ("on every page", "for all item
      kinds") — the prototype may have only done one. -->
 
-1. **<short name>** — Given <state>, when <action>, then <visible result>.
+<!-- Every change above is covered by at least one scenario. -->
+
+1. **<short name>** (C<n>) — Given <state>, when <action>, then <visible result>.
    Applies to: <scope>. Prototype coverage: <full | partial: what was skipped>.
 2. ...
 
