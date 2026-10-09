@@ -6,8 +6,8 @@
 
 <!-- One of: build / build-with-changes / don't build -->
 <!-- A "don't build" verdict is a successful session. Say why. -->
-<!-- build-with-changes: list each change; each becomes a success criterion
-     alongside the scenarios below. -->
+<!-- build-with-changes: list each required difference below; each becomes a
+     success criterion alongside the scenarios. -->
 
 **Verdict:** <build | build-with-changes | don't build>
 

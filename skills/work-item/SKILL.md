@@ -35,8 +35,10 @@ ending in `-item<N>`.
 **Prototype items.** If the item carries a prototype handoff marker
 (`<!-- prototype branch=prototype/<slug> ... -->`), follow the
 `software-development` skill's Prototype handoff: copy `PROTOTYPE.md` from
-that branch into `findings/prototype.md`, design from it, and treat its
-acceptance scenarios as success criteria. With `Autonomy: auto` there is no
+that branch into `findings/prototype.md`, design from it, treat its
+acceptance scenarios as success criteria, and its "What was prototyped"
+objectives as the brief's goals — the objective, not the hack. With
+`Autonomy: auto` there is no
 Design gate either — continue through Plan and Execute to the PR unless one
 of that section's stop triggers fires (post an Escalation gate). On the
 refine-in-place path, the item branch starts from the prototype branch.

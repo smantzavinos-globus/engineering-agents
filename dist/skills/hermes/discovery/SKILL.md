@@ -127,7 +127,9 @@ If the brief records `Path: prototype-first`:
   prototype never exercised.
 - Every acceptance scenario in `findings/prototype.md` (and every
   build-with-changes change) becomes a success criterion, worded as the
-  human accepted it. Gaps add criteria; they never drop or reinterpret one.
+  human accepted it. Each "What was prototyped" change's objective
+  becomes a brief goal — the objective, not the hack. Gaps add criteria;
+  they never drop or reinterpret one.
 - Record `Path: prototype-first` in the brief, and carry the prototype
   session's disposal recommendation forward as a decision for Design —
   not a settled fact.
