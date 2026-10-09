@@ -118,6 +118,53 @@ escalating mid-execution is cheap, de-escalating is not.
   it working — the human may choose the `prototype-first` entry instead:
   a human-paired throwaway prototype ends with `PROTOTYPE.md`, which
   enters the brief as primary evidence.
+- **"Implement this prototype"** (a pushed `prototype/<slug>` branch with
+  `PROTOTYPE.md`, usually via a linked item): follow Prototype handoff
+  below.
+
+## Prototype handoff (prototype → clean PR)
+
+An accepted prototype (verdict `build` or `build-with-changes`) already did
+the brief's job of fixing *what* to build, with the human in the loop. When
+the human asks to implement it (live, or by dispatching an item whose
+handoff comment names the branch), run the rest of the pipeline end to end:
+
+1. **Locate** the item, the `prototype/<slug>` branch and its
+   `PROTOTYPE.md`. Missing pushed branch, `PROTOTYPE.md`, or a verdict →
+   stop and say what is missing. `don't build` → stop.
+2. **Design** with `discover-and-design` in unattended mode, the prototype
+   as the conversation: `findings/prototype.md` = PROTOTYPE.md; the brief
+   records `Path: prototype-first`; **every acceptance scenario (and every
+   build-with-changes change) is a success criterion**, worded as accepted.
+   The overlooked-needs scan adds error paths, lifecycle and safety the
+   prototype skipped — additions only, never dropping or reinterpreting a
+   scenario. Approach records disposal (wipe-and-rebuild default), branch
+   topology, and test freshness; approach review runs as usual.
+3. **Gate or continue.** The accepted prototype plus the human's
+   instruction to implement (or `Autonomy: auto` on the item) is the
+   Design-gate and Plan-gate approval — *unless a stop trigger fires*.
+   Commit the design, then continue to plan, plan review, worklog,
+   execution and final code review (`execution-orchestrator`, detached).
+   Contract freezes proceed without approval; changing a frozen test
+   later still needs it. With `Autonomy: gated` (or unset on a dispatched
+   item), gate as usual.
+4. **Stop triggers** — post one gate (live: ask) with options and a
+   recommendation, then continue on the answer:
+   - the approach chooses refine-in-place;
+   - a scenario cannot be met as demonstrated, or two scenarios conflict;
+   - schema or data migration, auth/permissions or security posture,
+     a new external service or dependency, a public API/contract
+     change, spend, or anything irreversible;
+   - a design fork that changes user-visible behavior beyond the demo,
+     or a PROTOTYPE.md open question marked **[owner]**;
+   - the work is epic-sized.
+   Everything else is decided by the agent, recorded in the approach's
+   decisions table, and surfaced in the PR body.
+5. **PR** via `pull-request`: `Closes #N`; a **Prototype parity** section
+   mapping each acceptance scenario to its test(s) and, for UI, evidence
+   of the real build next to the prototype's; additions beyond the demo
+   listed separately. Merge stays human. After merge the prototype branch
+   is deleted (wipe path) by whoever merges or the next sweep.
 - **Epic-scale work**: the brief/approach become an epic skeleton
   (`epic.md`, numbered child plans); use `review-epic` at the epic layer.
   Child plans enter at PLAN in the table above, gated by the epic approach.

@@ -55,6 +55,11 @@ process with these changes:
   what is known, and make the first gate question whether to `discuss` it live.
 - Step 6 becomes: commit the artifacts, then post the **Design** gate per the
   `backlog` skill. The gate is the human accept step; do not wait in-session.
+- **Prototype handoff exception:** when the input is an accepted prototype
+  (`Path: prototype-first`) and the human asked to implement it or the item
+  is `Autonomy: auto`, the accepted prototype is the accept step: commit and
+  continue without a Design gate unless a stop trigger in the
+  `software-development` skill's Prototype handoff fires.
 
 ## Process
 

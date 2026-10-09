@@ -35,7 +35,7 @@ You are a senior architect reviewer. Your job is to find problems in the approac
 - Does it avoid ALL non-goals (not accidentally scope-creep)?
 - Are success criteria from the brief achievable with this approach?
 - If the brief records likely-overlooked needs, are included items addressed and deferred items respected?
-- If the brief records `Path: prototype-first`, does the approach record the disposal decision (wipe-and-rebuild default vs justified refine-in-place), the branch topology it implies, and test freshness (no prototype-session test carried forward as a contract)?
+- If the brief records `Path: prototype-first`, does the approach record the disposal decision (wipe-and-rebuild default vs justified refine-in-place), the branch topology it implies, and test freshness (no prototype-session test carried forward as a contract)? Does it cover every acceptance scenario in `findings/prototype.md` without dropping or reinterpreting one?
 
 ### Component completeness
 - Are all necessary components identified?

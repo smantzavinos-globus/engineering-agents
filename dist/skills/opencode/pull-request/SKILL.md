@@ -49,6 +49,12 @@ role procedure; never restate the contract from memory.
      duplicate — write the Markdown with local paths first, then pass
      `--attach` for each referenced file so the posted PR renders the images
      inline rather than as clickable links.
+   - **Prototype-first work** (`Path: prototype-first` in the brief): add a
+     **Prototype parity** section — one row per acceptance scenario in
+     `findings/prototype.md`: scenario, test(s) proving it, evidence (UI:
+     real-build screenshot beside the prototype's). List behavior added
+     beyond the demo separately. The diff must not contain `PROTOTYPE.md`
+     or `prototype-evidence/`.
 3. **Run verification**: every relevant `verification-commands` row; record
    exact command + outcome. Never write a line for a command you did not run.
 4. **Self-review**: apply R1–R6 and every manifest `review-rules` row to your
