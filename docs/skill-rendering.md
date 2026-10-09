@@ -156,7 +156,7 @@ The renderer fails hard on an unknown role, an unknown note, or any unexpanded `
 4. If it needs a shared framework-owned file, add a source→target mapping in
    `skill-resources.json`; do not hand-copy a second canonical source into the skill.
 5. Run `node tools/render-skills.mjs --write` and commit the updated `dist/`.
-6. If the skill is newly installed for a harness, add it to the appropriate Nix list (`nix/modules/pi/default.nix` and/or `openCodeSkills` in `nix/modules/opencode/config.nix`).
+6. Nothing to wire: the Nix modules install every skill rendered into `dist/skills/pi` and `dist/skills/opencode`. To keep a skill off a harness, restrict it with `harnesses: [..]` (it is then not rendered there at all); to keep it installed but out of the system prompt, add it to that harness's `hiddenSkills`.
 7. Run `./tests/run-tests.sh fast` (and `all` when a Nix host is available).
 
 Never hand-edit anything under `dist/` — it is generated.

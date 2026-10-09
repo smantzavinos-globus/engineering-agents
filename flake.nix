@@ -286,9 +286,7 @@
           for a in planner plan-reviewer code-reviewer worker worker-high worker-low ui-worker researcher vision oracle; do
             test -f "$cfgd/agent/agents/$a.md" || { echo "MISSING: agents/$a.md"; exit 1; }
           done
-          for s in discovery design discover-and-design discover-and-design-simple \
-                   research review-approach review-epic assess-repo create-skills \
-                   configure-pi pull-request; do
+          for s in $(ls ${self}/dist/skills/pi); do
             test -d "$cfgd/agent/skills/$s" || { echo "MISSING: skills/$s"; exit 1; }
           done
           ${pkgs.jq}/bin/jq -e '.defaultProvider == "zai-coding-plan" and .defaultModel == "glm-5.2"' \

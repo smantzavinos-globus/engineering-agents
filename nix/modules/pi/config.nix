@@ -974,19 +974,11 @@ let
       ''}
     '';
 
-  piSkills = [
-    "discovery"
-    "design"
-    "discover-and-design"
-    "discover-and-design-simple"
-    "research"
-    "review-approach"
-    "review-epic"
-    "assess-repo"
-    "create-skills"
-    "configure-pi"
-    "pull-request"
-  ];
+  # Every skill rendered for Pi is installed. Exclusion lives in one place:
+  # a canonical skill's `harnesses: [..]` frontmatter keeps it out of
+  # dist/skills/pi entirely (see docs/skill-rendering.md).
+  piSkills = builtins.attrNames (lib.filterAttrs (_: t: t == "directory")
+    (builtins.readDir "${self}/dist/skills/pi"));
 
   piAgents = [
     "planner"

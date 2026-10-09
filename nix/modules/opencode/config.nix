@@ -294,13 +294,10 @@ let
 
   # OpenCode skill set, rendered from canonical sources by tools/render-skills.mjs
   # into dist/skills/opencode/. No hand-maintained OpenCode forks.
-  openCodeSkills = [
-    "discovery" "design" "execution-orchestrator"
-    "research" "create-plan" "create-worklog" "execute-task"
-    "review-plan" "review-code" "review-approach" "review-epic"
-    "assess-repo" "create-skills"
-    "configure-opencode"
-  ];
+  # Every skill rendered for OpenCode is installed; exclude via the canonical
+  # skill's `harnesses: [..]` frontmatter (see docs/skill-rendering.md).
+  openCodeSkills = builtins.attrNames (lib.filterAttrs (_: t: t == "directory")
+    (builtins.readDir "${self}/dist/skills/opencode"));
 
 in
 {

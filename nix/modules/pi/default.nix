@@ -181,7 +181,7 @@ in
       lib.nameValuePair ".pi/agent/skills/${name}" {
         source = "${piConfigTree}/agent/skills/${name}";
       }
-    ) [ "discovery" "design" "discover-and-design" "discover-and-design-simple" "research" "review-approach" "review-epic" "assess-repo" "create-skills" "configure-pi" ]
+    ) piSkillNames
     );
 
     # ============================================================
