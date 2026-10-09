@@ -94,7 +94,7 @@ acceptance scenarios.
   - **wipe-and-rebuild (default):** the real work branches off the
     default branch, so the eventual PR diff carries zero prototype
     churn. The prototype branch survives as reference until the real PR
-    merges, then is deleted.
+    merges, then is deleted with the owner's OK.
   - **refine-in-place (exception):** the real work branches
     `feat/<slug>` off `prototype/<slug>`. Only when the architecture is
     sound and the shortcuts are localized and enumerable.

@@ -49,6 +49,7 @@ here for direct reading.
 |-----|----------------|
 | Onboard / audit a repo | `skills/assess-repo/SKILL.md` |
 | Clarify intent → brief | `skills/discovery/SKILL.md` |
+| Build-to-learn entry (human-paired prototype → brief) | `skills/prototype-first/SKILL.md` |
 | Research → approach | `skills/design/SKILL.md`, `skills/research/SKILL.md` |
 | Plan creation | `skills/create-plan/SKILL.md` |
 | Plan review | `skills/review-plan/SKILL.md` |
